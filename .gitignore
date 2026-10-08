@@ -47,6 +47,13 @@ coverage/
 htmlcov/
 .coverage
 
-# SDD & Agent specifications
+# ==========================================
+# SDD & AI Tooling Exclusions (NO SUBIR A GIT)
+# ==========================================
 .specify/
 .antigravity/
+*.prompt.md
+*.agent.md
+.cursor/
+.windsurf/
+
