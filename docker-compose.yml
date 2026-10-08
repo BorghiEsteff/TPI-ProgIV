@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cinetrack_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME:-cinetrack_db}
+      POSTGRES_USER: ${DB_USER:-cinetrack_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-cinetrack_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cinetrack-net
+
+  mongo:
+    image: mongo:7
+    container_name: cinetrack_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: cinetrack_social
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - cinetrack-net
+
+volumes:
+  postgres_data:
+    driver: local
+  mongo_data:
+    driver: local
+
+networks:
+  cinetrack-net:
+    driver: bridge
