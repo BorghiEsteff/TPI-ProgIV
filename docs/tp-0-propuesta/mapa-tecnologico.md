@@ -1,0 +1,9 @@
+# Mapa Tecnológico – CineTrack
+
+| Componente | Tecnología | Responsabilidad de Dominio | Criterio de Justificación: «¿Qué se rompe si la saco?» |
+| :--- | :--- | :--- | :--- |
+| **Backend Transaccional** | **Django 5 + DRF + PostgreSQL 16** | Núcleo transaccional ACID: usuarios, roles, catálogo canónico de contenidos/temporadas/episodios, progreso en segundos y emisor único de JWT. | Se pierde la integridad referencial y las transacciones ACID; no se puede garantizar la coherencia del avance cronológico del usuario ni la unicidad de las sesiones. |
+| **Backend Documental & Social** | **Node.js 20 + Express + Mongoose + MongoDB 7** | Almacenamiento de reseñas de longitud flexible, árboles de comentarios anidados, auditoría social y consumo de Django con fallback. | Se colapsaría la base relacional con tablas hipernormalizadas para comentarios en árbol y se perdería la agilidad para almacenar opiniones con esquemas cambiantes. |
+| **Microservicio de IA** | **FastAPI + Ollama (`llama3.2:1b`) + Pydantic v2** | Análisis automatizado del texto de las reseñas para detección de spoilers y análisis de sentimiento con salida tipada. | Las reseñas se publicarían sin filtro, arruinando tramas a los usuarios y quitando la capacidad de categorización inteligente del sistema. |
+| **Tiempo Real** | **Socket.IO 4** | Salas en vivo por serie/capítulo (`WatchRooms`), presencia de usuarios conectados y avisos de progreso en directo. | La plataforma se vuelve puramente estática: se anula la interacción comunitaria y la noción de usuarios viendo el mismo título en tiempo real. |
+| **Orquestación & CI/CD** | **Docker Compose + GitHub Actions** | Contenedores multietapa, redes aisladas, control de variables de entorno y pipeline automatizado de pruebas. | El proyecto no podría desplegarse con un solo comando ni evaluarse de manera reproducible en cualquier máquina sin intervención manual. |
