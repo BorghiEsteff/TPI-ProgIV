@@ -57,3 +57,7 @@ htmlcov/
 .cursor/
 .windsurf/
 
+# Office temporary files
+~$*
+
+
