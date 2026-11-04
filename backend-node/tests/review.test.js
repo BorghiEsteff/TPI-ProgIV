@@ -104,8 +104,23 @@ describe('TP 1 - Tests Unitarios de Reseñas y Capa Social', () => {
     expect(result.degraded).toBe(true);
   });
 
-  // ── Test 5: Actualización de reseña con validación Zod ─────────────────────────
-  test('5. Actualiza parcialmente una reseña existente (rating y comentario)', async () => {
+  // ── Test 5: Rechazo cuando Django responde 404 (obra inexistente) ─────────────
+  test('5. Distingue correctamente un 404 de Django (obra inexistente, exists: false)', async () => {
+    const notFoundError = new Error('Request failed with status code 404');
+    notFoundError.response = { status: 404, data: { detail: 'Not found' } };
+
+    jest
+      .spyOn(djangoService.djangoClient, 'get')
+      .mockRejectedValue(notFoundError);
+
+    const result = await djangoService.validateMediaExists(9999);
+
+    expect(result.exists).toBe(false);
+    expect(result.degraded).toBeUndefined();
+  });
+
+  // ── Test 6: Actualización de reseña con validación Zod ─────────────────────────
+  test('6. Actualiza parcialmente una reseña existente (rating y comentario)', async () => {
     const updatePayload = { rating: 9, comment: 'Actualizado: la segunda temporada es mejor' };
     const parsedUpdate = updateReviewSchema.safeParse(updatePayload);
     expect(parsedUpdate.success).toBe(true);
@@ -128,8 +143,8 @@ describe('TP 1 - Tests Unitarios de Reseñas y Capa Social', () => {
     expect(review.save).toHaveBeenCalledTimes(1);
   });
 
-  // ── Test 6: Eliminación de reseña ─────────────────────────────────────────────
-  test('6. Elimina una reseña existente por ID', async () => {
+  // ── Test 7: Eliminación de reseña ─────────────────────────────────────────────
+  test('7. Elimina una reseña existente por ID', async () => {
     const mockId = new mongoose.Types.ObjectId();
     jest.spyOn(Review, 'findByIdAndDelete').mockResolvedValue({ _id: mockId, ...validReviewPayload() });
 
