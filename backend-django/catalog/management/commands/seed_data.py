@@ -1,31 +1,63 @@
 from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from catalog.models import Genre, MediaItem, Season, Episode
 from tracking.models import UserProgress
 from datetime import date
 
+User = get_user_model()
+
 
 class Command(BaseCommand):
-    help = "Carga datos iniciales (seed) de demostración para el catálogo y progreso de CineTrack"
+    help = "Carga datos iniciales (seed) de demostración para el catálogo, usuarios con roles y progreso de CineTrack"
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE("Iniciando la carga de datos iniciales..."))
 
-        # 1. Crear o recuperar superusuario / usuario de prueba
-        user, created = User.objects.get_or_create(
-            username="admin",
-            defaults={
+        # 1. Crear usuarios demo con roles y contraseñas hasheadas
+        users_data = [
+            {
                 "email": "admin@cinetrack.local",
+                "username": "admin_cinetrack",
+                "role": User.Role.ADMIN,
                 "is_staff": True,
                 "is_superuser": True,
+                "password": "AdminPassword123!",
+                "bio": "Administrador general de la plataforma CineTrack.",
             },
-        )
-        if created:
-            user.set_password("admin123")
-            user.save()
-            self.stdout.write(self.style.SUCCESS("Usuario demo 'admin' creado (password: admin123)."))
+            {
+                "email": "critic@cinetrack.local",
+                "username": "critico_experto",
+                "role": User.Role.CRITIC,
+                "is_staff": False,
+                "is_superuser": False,
+                "password": "CriticPassword123!",
+                "bio": "Crítico certificado de cine y series de televisión.",
+            },
+            {
+                "email": "user@cinetrack.local",
+                "username": "fan_series",
+                "role": User.Role.USER,
+                "is_staff": False,
+                "is_superuser": False,
+                "password": "UserPassword123!",
+                "bio": "Entusiasta de series de ciencia ficción y dramas psicológicos.",
+            },
+        ]
 
-        # 2. Géneros requeridos (mínimo 3)
+        created_users = {}
+        for u_data in users_data:
+            user_obj = User.objects.filter(email=u_data["email"]).first()
+            if not user_obj:
+                pwd = u_data.pop("password")
+                user_obj = User.objects.create_user(password=pwd, **u_data)
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"Usuario demo creado: {user_obj.email} [Rol: {user_obj.role}]"
+                    )
+                )
+            created_users[user_obj.role] = user_obj
+
+        # 2. Géneros requeridos
         genres_names = ["Ciencia Ficción", "Drama", "Acción", "Suspenso", "Fantasía"]
         genres = {}
         for name in genres_names:
@@ -33,9 +65,9 @@ class Command(BaseCommand):
             genres[name] = genre_obj
         self.stdout.write(self.style.SUCCESS(f"{len(genres)} géneros cargados con éxito."))
 
-        # 3. Series de demostración (mínimo 2 series con temporadas y episodios)
+        # 3. Series de demostración
         # Serie 1: Stranger Things
-        st, created = MediaItem.objects.get_or_create(
+        st, _ = MediaItem.objects.get_or_create(
             title="Stranger Things",
             defaults={
                 "media_type": MediaItem.MediaType.SERIE,
@@ -64,7 +96,7 @@ class Command(BaseCommand):
             )
 
         # Serie 2: Breaking Bad
-        bb, created = MediaItem.objects.get_or_create(
+        bb, _ = MediaItem.objects.get_or_create(
             title="Breaking Bad",
             defaults={
                 "media_type": MediaItem.MediaType.SERIE,
@@ -92,7 +124,7 @@ class Command(BaseCommand):
                 defaults={"title": title, "duration_minutes": duration},
             )
 
-        # Película adicional para demostrar validación de dominio
+        # Película: The Matrix
         matrix, _ = MediaItem.objects.get_or_create(
             title="The Matrix",
             defaults={
@@ -106,18 +138,19 @@ class Command(BaseCommand):
         )
         matrix.genres.set([genres["Ciencia Ficción"], genres["Acción"]])
 
-        # 4. Progreso inicial del usuario
-        UserProgress.objects.get_or_create(
-            user=user,
-            media_item=st,
-            defaults={
-                "status": UserProgress.WatchStatus.VIENDO,
-                "current_season_number": 1,
-                "current_episode_number": 2,
-                "current_seconds": 1240,
-                "is_favorite": True,
-            },
-        )
+        # 4. Progreso inicial del usuario demo estándar
+        standard_user = created_users.get(User.Role.USER)
+        if standard_user:
+            UserProgress.objects.get_or_create(
+                user=standard_user,
+                media_item=st,
+                defaults={
+                    "status": UserProgress.WatchStatus.VIENDO,
+                    "current_season_number": 1,
+                    "current_episode_number": 2,
+                    "current_seconds": 1240,
+                    "is_favorite": True,
+                },
+            )
 
-        self.stdout.write(self.style.SUCCESS("¡Carga de seed completada exitosamente!"))
-
+        self.stdout.write(self.style.SUCCESS("¡Carga de seed TP 2 completada exitosamente!"))
