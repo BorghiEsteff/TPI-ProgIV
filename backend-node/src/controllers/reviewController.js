@@ -12,7 +12,7 @@ import { validateMediaExists } from '../services/djangoService.js';
 // ─────────────────────────────────────────────
 export const createReview = async (req, res, next) => {
   try {
-    // 1. Validar cuerpo con Zod.
+    // 1. Validar cuerpo con Zod
     const parsed = createReviewSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(422).json({
@@ -24,9 +24,13 @@ export const createReview = async (req, res, next) => {
       });
     }
 
-    const { mediaItemId, userId, userName, rating, comment, isSpoiler } = parsed.data;
+    const { mediaItemId, rating, comment, isSpoiler } = parsed.data;
 
-    // 2. Verificar existencia del MediaItem en Django.
+    // 2. Extraer identidad autenticada desde req.user (o fallback seguro a body en test)
+    const userId = req.user ? req.user.id : (parsed.data.userId || 'anonymous-user');
+    const userName = req.user ? (req.user.username || 'Usuario CineTrack') : (parsed.data.userName || 'Usuario CineTrack');
+
+    // 3. Verificar existencia del MediaItem en Django
     const mediaCheck = await validateMediaExists(mediaItemId);
 
     if (!mediaCheck.exists) {
@@ -39,7 +43,7 @@ export const createReview = async (req, res, next) => {
       });
     }
 
-    // 3. Persistir la reseña en MongoDB.
+    // 4. Persistir la reseña en MongoDB
     const review = await Review.create({
       mediaItemId,
       userId,
@@ -49,7 +53,7 @@ export const createReview = async (req, res, next) => {
       isSpoiler,
     });
 
-    // 4. Registrar en ActivityLog de forma asíncrona sin bloquear respuesta.
+    // 5. Registrar en ActivityLog
     ActivityLog.create({
       userId,
       action: 'CREATE_REVIEW',
@@ -57,7 +61,7 @@ export const createReview = async (req, res, next) => {
       metadata: { mediaItemId, rating },
     }).catch((err) => console.error('[ActivityLog] Error al registrar:', err.message));
 
-    // 5. Si Django estuvo degradado, informar en header.
+    // 6. Header de contingencia si Django operó en modo degradado
     if (mediaCheck.degraded) {
       res.set('X-Degraded-Mode', 'true');
     }
@@ -84,7 +88,6 @@ export const getReviewsByMedia = async (req, res, next) => {
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 10));
     const skip  = (page - 1) * limit;
 
-    // Verificar disponibilidad de Django (para encabezado de modo degradado).
     const mediaCheck = await validateMediaExists(mediaId);
 
     const [reviews, total] = await Promise.all([
@@ -137,7 +140,22 @@ export const updateReview = async (req, res, next) => {
       });
     }
 
-    // Actualizar campos permitidos
+    // 🔒 Control de Autoría (TP 2): El autor original o un ADMIN pueden modificar la reseña
+    if (req.user) {
+      const isAuthor = String(review.userId) === String(req.user.id);
+      const isAdmin = req.user.role === 'ADMIN';
+
+      if (!isAuthor && !isAdmin) {
+        return res.status(403).json({
+          error: {
+            message: 'Acceso denegado: No posee permisos para modificar una reseña que no le pertenece',
+            code:    'FORBIDDEN_NOT_AUTHOR',
+            details: null,
+          },
+        });
+      }
+    }
+
     if (parsed.data.rating !== undefined) review.rating = parsed.data.rating;
     if (parsed.data.comment !== undefined) review.comment = parsed.data.comment;
     if (parsed.data.isSpoiler !== undefined) review.isSpoiler = parsed.data.isSpoiler;
@@ -145,7 +163,7 @@ export const updateReview = async (req, res, next) => {
     await review.save();
 
     ActivityLog.create({
-      userId: review.userId,
+      userId: req.user ? req.user.id : review.userId,
       action: 'UPDATE_REVIEW',
       targetId: review._id,
       metadata: { changes: parsed.data },
@@ -180,14 +198,24 @@ export const addReply = async (req, res, next) => {
       });
     }
 
-    review.replies.push(parsed.data);
+    const userId = req.user ? req.user.id : (parsed.data.userId || 'anonymous-user');
+    const userName = req.user ? (req.user.username || 'Usuario CineTrack') : (parsed.data.userName || 'Usuario CineTrack');
+
+    const replyDocument = {
+      userId,
+      userName,
+      comment: parsed.data.comment,
+      createdAt: new Date(),
+    };
+
+    review.replies.push(replyDocument);
     await review.save();
 
     ActivityLog.create({
-      userId: parsed.data.userId,
+      userId,
       action: 'ADD_REPLY',
       targetId: review._id,
-      metadata: { replyUserName: parsed.data.userName },
+      metadata: { replyUserName: userName },
     }).catch((err) => console.error('[ActivityLog] Error al registrar:', err.message));
 
     return res.status(201).json(review);
@@ -201,15 +229,33 @@ export const addReply = async (req, res, next) => {
 // ─────────────────────────────────────────────
 export const deleteReview = async (req, res, next) => {
   try {
-    const review = await Review.findByIdAndDelete(req.params.id);
+    const review = await Review.findById(req.params.id);
     if (!review) {
       return res.status(404).json({
         error: { message: 'Reseña no encontrada', code: 'REVIEW_NOT_FOUND', details: null },
       });
     }
 
+    // 🔒 Control de Autoría (TP 2): Solo el autor o ADMIN pueden borrar
+    if (req.user) {
+      const isAuthor = String(review.userId) === String(req.user.id);
+      const isAdmin = req.user.role === 'ADMIN';
+
+      if (!isAuthor && !isAdmin) {
+        return res.status(403).json({
+          error: {
+            message: 'Acceso denegado: No posee permisos para eliminar una reseña ajena',
+            code:    'FORBIDDEN_NOT_AUTHOR',
+            details: null,
+          },
+        });
+      }
+    }
+
+    await Review.findByIdAndDelete(req.params.id);
+
     ActivityLog.create({
-      userId: review.userId,
+      userId: req.user ? req.user.id : review.userId,
       action: 'DELETE_REVIEW',
       targetId: review._id,
       metadata: { mediaItemId: review.mediaItemId },
