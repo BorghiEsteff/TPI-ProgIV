@@ -6,35 +6,24 @@ import {
   addReply,
   deleteReview,
 } from '../controllers/reviewController.js';
+import { authenticateJWT, authorizeRoles } from '../middlewares/authMiddleware.js';
 
 const router = Router();
 
-/**
- * Rutas de la API REST de Reseñas y Capa Social - CineTrack (TP 1)
- *
- * ⚠️ NOTA DE SEGURIDAD / ARQUITECTURA (TRANSICIÓN TP 1 -> TP 2):
- * De acuerdo al plan de entregas, la autenticación criptográfica centralizada
- * basada en JWT compartido con Django (SimpleJWT) se implementará en la etapa TP 2.
- * Actualmente, los endpoints de mutación (POST, PUT, DELETE) confían en la
- * identidad transmitida en el payload validado con Zod. En el TP 2 se incorporará
- * el middleware de autenticación (authMiddleware) que validará el Bearer token
- * y verificará que el userId del token coincida con el autor de la reseña o respuesta,
- * impidiendo modificaciones no autorizadas en entornos de producción.
- */
-
-// POST   /api/v1/reviews/                 → Crear reseña (valida con Zod y catálogo Django)
-router.post('/', createReview);
-
-// GET    /api/v1/reviews/media/:mediaId   → Listar reseñas paginadas por obra (lectura pública)
+// GET    /api/v1/reviews/media/:mediaId   → Listar reseñas paginadas (lectura pública)
 router.get('/media/:mediaId', getReviewsByMedia);
 
-// PUT    /api/v1/reviews/:id              → Actualizar reseña (protegida lógicamente, auth JWT en TP 2)
-router.put('/:id', updateReview);
+// Rutas protegidas con autenticación JWT de Django SimpleJWT:
+// POST   /api/v1/reviews/                 → Crear reseña (requiere autenticación)
+router.post('/', authenticateJWT, createReview);
 
-// POST   /api/v1/reviews/:id/replies      → Agregar respuesta a una reseña
-router.post('/:id/replies', addReply);
+// PUT    /api/v1/reviews/:id              → Actualizar reseña (solo autor o ADMIN)
+router.put('/:id', authenticateJWT, updateReview);
 
-// DELETE /api/v1/reviews/:id              → Eliminar reseña (protegida lógicamente, auth JWT en TP 2)
-router.delete('/:id', deleteReview);
+// POST   /api/v1/reviews/:id/replies      → Responder reseña (requiere autenticación)
+router.post('/:id/replies', authenticateJWT, addReply);
+
+// DELETE /api/v1/reviews/:id              → Eliminar reseña (solo autor o ADMIN)
+router.delete('/:id', authenticateJWT, deleteReview);
 
 export default router;

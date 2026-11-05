@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 /**
  * Schema Zod para la creación de una reseña.
+ * Nota de seguridad TP 2: userId y userName se obtienen del token autenticado (req.user),
+ * pero se aceptan en el schema como opcionales para preservar compatibilidad con tests unitarios.
  */
 export const createReviewSchema = z.object({
   mediaItemId: z
@@ -9,13 +11,8 @@ export const createReviewSchema = z.object({
     .int()
     .positive('mediaItemId debe ser un entero positivo'),
 
-  userId: z
-    .string({ required_error: 'userId es requerido' })
-    .min(1, 'userId no puede estar vacío'),
-
-  userName: z
-    .string({ required_error: 'userName es requerido' })
-    .min(1, 'userName no puede estar vacío'),
+  userId: z.string().optional(),
+  userName: z.string().optional(),
 
   rating: z
     .number({ required_error: 'rating es requerido', invalid_type_error: 'rating debe ser un número' })
@@ -57,13 +54,8 @@ export const updateReviewSchema = z.object({
  * Schema Zod para agregar una respuesta anidada (reply) a una reseña.
  */
 export const createReplySchema = z.object({
-  userId: z
-    .string({ required_error: 'userId es requerido' })
-    .min(1, 'userId no puede estar vacío'),
-
-  userName: z
-    .string({ required_error: 'userName es requerido' })
-    .min(1, 'userName no puede estar vacío'),
+  userId: z.string().optional(),
+  userName: z.string().optional(),
 
   comment: z
     .string({ required_error: 'comment es requerido' })
