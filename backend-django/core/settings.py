@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from datetime import timedelta
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -16,6 +17,9 @@ ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "localhost,
 if "testserver" not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append("testserver")
 
+# Custom User Model
+AUTH_USER_MODEL = "users.CustomUser"
+
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -26,10 +30,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third party apps
     "rest_framework",
+    "rest_framework_simplejwt",
     "corsheaders",
     "django_filters",
     "drf_spectacular",
     # Local apps
+    "users",
     "catalog",
     "tracking",
 ]
@@ -73,7 +79,6 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "cinetrack_pass")
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
 
-# Intentar verificar si PostgreSQL está accesible; de lo contrario usar SQLite para desarrollo ágil y testing
 def _get_database_config():
     import socket
     pg_config = {
@@ -84,7 +89,6 @@ def _get_database_config():
         "HOST": DB_HOST,
         "PORT": DB_PORT,
     }
-    # Si explícitamente se configuró sqlite
     if "sqlite" in DB_ENGINE:
         return {
             "ENGINE": "django.db.backends.sqlite3",
@@ -99,8 +103,7 @@ def _get_database_config():
             return pg_config
     except Exception:
         pass
-    
-    # Fallback automático a SQLite si el servicio PostgreSQL aún no fue levantado en la máquina
+
     return {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
@@ -117,6 +120,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 8,
+        },
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -144,6 +150,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Django REST Framework Configuration
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
     "DEFAULT_FILTER_BACKENDS": [
@@ -155,11 +165,35 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
+# SimpleJWT Configuration
+JWT_SIGNING_KEY = os.getenv(
+    "JWT_SIGNING_KEY",
+    "super-secret-jwt-signing-key-shared-between-services",
+)
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": JWT_SIGNING_KEY,
+    "VERIFYING_KEY": None,
+    "AUDIENCE": None,
+    "ISSUER": "cinetrack-auth-django",
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_TYPE_CLAIM": "token_type",
+}
+
 # drf-spectacular configuration
 SPECTACULAR_SETTINGS = {
-    "TITLE": "CineTrack Catalog & Tracking API",
-    "DESCRIPTION": "API REST para catálogo y tracking de contenido multimedia (TP 1 - CineTrack)",
-    "VERSION": "1.0.0",
+    "TITLE": "CineTrack Polyglot API",
+    "DESCRIPTION": "API REST con autoridad central de identidad JWT, catálogo y tracking de contenido (TP 2 - CineTrack)",
+    "VERSION": "2.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
 

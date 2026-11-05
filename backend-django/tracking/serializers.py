@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.utils import timezone
 from .models import UserProgress
 from catalog.serializers import MediaItemSerializer
 
@@ -23,7 +22,7 @@ class UserProgressSerializer(serializers.ModelSerializer):
             "is_favorite",
             "updated_at",
         ]
-        read_only_fields = ["id", "updated_at"]
+        read_only_fields = ["id", "user", "updated_at"]
 
     def validate_current_seconds(self, value):
         if value < 0:
@@ -36,14 +35,17 @@ class UserProgressSerializer(serializers.ModelSerializer):
         current_status = instance.status if instance else None
 
         # Autocompletar started_at con el timestamp actual al pasar a 'VIENDO' si no vino provisto
-        if (status_value == UserProgress.WatchStatus.VIENDO or (current_status != UserProgress.WatchStatus.VIENDO and status_value == UserProgress.WatchStatus.VIENDO)):
+        if status_value == UserProgress.WatchStatus.VIENDO or (
+            current_status != UserProgress.WatchStatus.VIENDO and status_value == UserProgress.WatchStatus.VIENDO
+        ):
             if not attrs.get("started_at") and (not instance or not instance.started_at):
+                from django.utils import timezone
                 attrs["started_at"] = timezone.now()
 
         # Autocompletar finished_at si se marca como 'VISTO'
         if status_value == UserProgress.WatchStatus.VISTO:
             if not attrs.get("finished_at") and (not instance or not instance.finished_at):
+                from django.utils import timezone
                 attrs["finished_at"] = timezone.now()
 
         return attrs
-

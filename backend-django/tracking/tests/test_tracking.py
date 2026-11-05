@@ -1,20 +1,24 @@
 import pytest
 from datetime import date
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
-
-from catalog.models import Genre, MediaItem, Season, Episode
+from catalog.models import Genre, MediaItem
 from tracking.models import UserProgress
 from tracking.serializers import UserProgressSerializer
-from catalog.serializers import SeasonSerializer, EpisodeSerializer
+from catalog.serializers import SeasonSerializer
+
+User = get_user_model()
 
 
 @pytest.mark.django_db
 class TestCineTrackModelsAndSerializers:
     @pytest.fixture(autouse=True)
     def setup_data(self):
-        self.user = User.objects.create_user(username="cinelover", password="secretpassword")
+        self.user = User.objects.create_user(
+            email="cinelover@cinetrack.local",
+            username="cinelover",
+            password="secretpassword123",
+        )
         self.genre_scifi = Genre.objects.create(name="Sci-Fi")
 
         # Serie
@@ -50,7 +54,6 @@ class TestCineTrackModelsAndSerializers:
     def test_tracking_current_seconds_cannot_be_negative(self):
         """Regla de Negocio: Validar que current_seconds no sea negativo."""
         data = {
-            "user": self.user.id,
             "media_item": self.serie.id,
             "status": UserProgress.WatchStatus.PENDIENTE,
             "current_seconds": -120,
@@ -62,14 +65,13 @@ class TestCineTrackModelsAndSerializers:
     def test_tracking_started_at_autocomplete_on_watching(self):
         """Regla de Negocio: Autocompletar started_at con el timestamp actual al pasar a 'VIENDO' si estaba vacío."""
         data = {
-            "user": self.user.id,
             "media_item": self.serie.id,
             "status": UserProgress.WatchStatus.VIENDO,
             "current_seconds": 300,
         }
         serializer = UserProgressSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
-        instance = serializer.save()
+        instance = serializer.save(user=self.user)
 
         assert instance.status == UserProgress.WatchStatus.VIENDO
         assert instance.started_at is not None
@@ -84,13 +86,10 @@ class TestCineTrackModelsAndSerializers:
             current_seconds=500,
         )
 
-        duplicate_data = {
-            "user": self.user.id,
-            "media_item": self.serie.id,
-            "status": UserProgress.WatchStatus.VISTO,
-            "current_seconds": 1500,
-        }
-        serializer = UserProgressSerializer(data=duplicate_data)
-        assert not serializer.is_valid()
-        assert "non_field_errors" in serializer.errors
-
+        with pytest.raises(Exception):
+            UserProgress.objects.create(
+                user=self.user,
+                media_item=self.serie,
+                status=UserProgress.WatchStatus.VISTO,
+                current_seconds=1500,
+            )

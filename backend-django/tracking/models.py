@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from catalog.models import MediaItem
@@ -13,7 +13,7 @@ class UserProgress(models.Model):
         ABANDONADO = "ABANDONADO", "Abandonado"
 
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="progresses",
         verbose_name="Usuario",
@@ -68,4 +68,4 @@ class UserProgress(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.user.username} - {self.media_item.title} ({self.get_status_display()})"
+        return f"{self.user.email} - {self.media_item.title} ({self.get_status_display()})"

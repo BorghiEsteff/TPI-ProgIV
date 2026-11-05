@@ -25,7 +25,9 @@ router.register(r"tracking", UserProgressViewSet, basename="tracking")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # API endpoints
+    # Autenticación y Autorización Centralizada (TP 2)
+    path("api/v1/auth/", include("users.urls")),
+    # API endpoints de catálogo y tracking
     path("api/v1/", include(router.urls)),
     # Documentación OpenAPI / Swagger
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
