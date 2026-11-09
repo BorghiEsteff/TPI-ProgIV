@@ -140,7 +140,7 @@ export const updateReview = async (req, res, next) => {
       });
     }
 
-    // 🔒 Control de Autoría (TP 2): El autor original o un ADMIN pueden modificar la reseña
+    // Control de Autoría (TP 2): El autor original o un ADMIN pueden modificar la reseña
     if (req.user) {
       const isAuthor = String(review.userId) === String(req.user.id);
       const isAdmin = req.user.role === 'ADMIN';
@@ -236,7 +236,7 @@ export const deleteReview = async (req, res, next) => {
       });
     }
 
-    // 🔒 Control de Autoría (TP 2): Solo el autor o ADMIN pueden borrar
+    // Control de Autoría (TP 2): Solo el autor o ADMIN pueden borrar
     if (req.user) {
       const isAuthor = String(review.userId) === String(req.user.id);
       const isAdmin = req.user.role === 'ADMIN';
