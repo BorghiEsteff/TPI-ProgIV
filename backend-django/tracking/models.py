@@ -28,6 +28,7 @@ class UserProgress(models.Model):
         max_length=15,
         choices=WatchStatus.choices,
         default=WatchStatus.PENDIENTE,
+        db_index=True,
         verbose_name="Estado de visualización",
     )
     started_at = models.DateTimeField(null=True, blank=True, verbose_name="Iniciado el")
@@ -41,14 +42,19 @@ class UserProgress(models.Model):
     current_seconds = models.PositiveIntegerField(
         default=0, verbose_name="Segundos actuales reproducidos"
     )
-    is_favorite = models.BooleanField(default=False, verbose_name="Favorito")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Última actualización")
+    is_favorite = models.BooleanField(default=False, db_index=True, verbose_name="Favorito")
+    updated_at = models.DateTimeField(auto_now=True, db_index=True, verbose_name="Última actualización")
 
     class Meta:
         verbose_name = "Progreso de Usuario"
         verbose_name_plural = "Progresos de Usuarios"
         unique_together = ("user", "media_item")
         ordering = ["-updated_at"]
+        indexes = [
+            models.Index(fields=["user", "media_item"], name="prog_user_media_idx"),
+            models.Index(fields=["user", "status"], name="prog_user_status_idx"),
+            models.Index(fields=["user", "is_favorite"], name="prog_user_fav_idx"),
+        ]
 
     def clean(self):
         super().clean()
