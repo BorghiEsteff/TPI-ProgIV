@@ -1,0 +1,151 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CineTrack - API REST de Reseñas y Capa Social",
+    "version": "1.0.0",
+    "description": "Especificación OpenAPI 3.0 para el microservicio Node.js / Express / MongoDB del proyecto CineTrack (UTN FRRE)."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/api/v1",
+      "description": "Servidor Local de Desarrollo"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT emitido por Django SimpleJWT"
+      }
+    },
+    "schemas": {
+      "Review": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "mediaItemId": { "type": "integer" },
+          "userId": { "type": "string" },
+          "userName": { "type": "string" },
+          "rating": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "comment": { "type": "string", "maxLength": 2000 },
+          "isSpoiler": { "type": "boolean" },
+          "replies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": { "type": "string" },
+                "userName": { "type": "string" },
+                "comment": { "type": "string" },
+                "createdAt": { "type": "string", "format": "date-time" }
+              }
+            }
+          },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreateReviewInput": {
+        "type": "object",
+        "required": ["mediaItemId", "rating", "comment"],
+        "properties": {
+          "mediaItemId": { "type": "integer" },
+          "rating": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "comment": { "type": "string", "maxLength": 2000 },
+          "isSpoiler": { "type": "boolean", "default": false }
+        }
+      },
+      "UpdateReviewInput": {
+        "type": "object",
+        "properties": {
+          "rating": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "comment": { "type": "string", "maxLength": 2000 },
+          "isSpoiler": { "type": "boolean" }
+        }
+      },
+      "AddReplyInput": {
+        "type": "object",
+        "required": ["comment"],
+        "properties": {
+          "comment": { "type": "string", "maxLength": 2000 }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/reviews/media/{mediaId}": {
+      "get": {
+        "summary": "Listar reseñas paginadas por obra",
+        "parameters": [
+          { "name": "mediaId", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": { "description": "Lista paginada de reseñas" }
+        }
+      }
+    },
+    "/reviews": {
+      "post": {
+        "summary": "Crear reseña",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateReviewInput" } }
+          }
+        },
+        "responses": {
+          "201": { "description": "Reseña creada exitosamente" },
+          "401": { "description": "No autorizado (Token inválido o ausente)" },
+          "404": { "description": "MediaItem no encontrado en catálogo Django" },
+          "422": { "description": "Error de validación Zod" }
+        }
+      }
+    },
+    "/reviews/{id}": {
+      "put": {
+        "summary": "Actualizar reseña existente",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateReviewInput" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Reseña actualizada" },
+          "403": { "description": "Acceso denegado (no es el autor ni ADMIN)" }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar reseña",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "204": { "description": "Reseña eliminada" },
+          "403": { "description": "Acceso denegado (no es el autor ni ADMIN)" }
+        }
+      }
+    },
+    "/reviews/{id}/replies": {
+      "post": {
+        "summary": "Agregar respuesta anidada a reseña",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/AddReplyInput" } }
+          }
+        },
+        "responses": {
+          "201": { "description": "Respuesta agregada" }
+        }
+      }
+    }
+  }
+}
