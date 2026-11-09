@@ -19,24 +19,29 @@ class MediaItem(models.Model):
         SERIE = "SERIE", "Serie"
         PELICULA = "PELICULA", "Película"
 
-    title = models.CharField(max_length=255, verbose_name="Título")
+    title = models.CharField(max_length=255, db_index=True, verbose_name="Título")
     media_type = models.CharField(
         max_length=10,
         choices=MediaType.choices,
         default=MediaType.PELICULA,
+        db_index=True,
         verbose_name="Tipo de Medio",
     )
-    release_date = models.DateField(verbose_name="Fecha de Estreno")
-    producer = models.CharField(max_length=255, verbose_name="Productora")
+    release_date = models.DateField(db_index=True, verbose_name="Fecha de Estreno")
+    producer = models.CharField(max_length=255, db_index=True, verbose_name="Productora")
     poster_image = models.URLField(max_length=500, blank=True, null=True, verbose_name="URL del Póster")
     synopsis = models.TextField(verbose_name="Sinopsis")
-    is_active = models.BooleanField(default=True, verbose_name="Activo")
+    is_active = models.BooleanField(default=True, db_index=True, verbose_name="Activo")
     genres = models.ManyToManyField(Genre, related_name="media_items", verbose_name="Géneros")
 
     class Meta:
         verbose_name = "Ítem Multimedia"
         verbose_name_plural = "Ítems Multimedia"
         ordering = ["-release_date", "title"]
+        indexes = [
+            models.Index(fields=["media_type", "is_active"], name="media_type_active_idx"),
+            models.Index(fields=["release_date", "title"], name="media_date_title_idx"),
+        ]
 
     def __str__(self):
         return f"{self.title} ({self.get_media_type_display()})"
@@ -58,6 +63,9 @@ class Season(models.Model):
         verbose_name_plural = "Temporadas"
         unique_together = ("media_item", "season_number")
         ordering = ["season_number"]
+        indexes = [
+            models.Index(fields=["media_item", "season_number"], name="season_media_num_idx"),
+        ]
 
     def clean(self):
         super().clean()
@@ -88,6 +96,9 @@ class Episode(models.Model):
         verbose_name_plural = "Episodios"
         unique_together = ("season", "episode_number")
         ordering = ["episode_number"]
+        indexes = [
+            models.Index(fields=["season", "episode_number"], name="ep_season_num_idx"),
+        ]
 
     def clean(self):
         super().clean()
