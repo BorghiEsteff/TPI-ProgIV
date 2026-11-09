@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     "drf_spectacular",
+    "graphene_django",
     # Local apps
     "users",
     "catalog",
@@ -195,6 +196,11 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API REST con autoridad central de identidad JWT, catálogo y tracking de contenido (TP 2 - CineTrack)",
     "VERSION": "2.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+}
+
+# Graphene-Django Configuration
+GRAPHENE = {
+    "SCHEMA": "catalog.schema.schema",
 }
 
 # CORS Configuration

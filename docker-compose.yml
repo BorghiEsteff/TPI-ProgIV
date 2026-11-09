@@ -1,4 +1,7 @@
 services:
+  # ============================================================================
+  # 1. Base de Datos Relacional (PostgreSQL 16)
+  # ============================================================================
   postgres:
     image: postgres:16-alpine
     container_name: cinetrack_postgres
@@ -13,7 +16,15 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - cinetrack-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-cinetrack_user} -d ${DB_NAME:-cinetrack_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
+  # ============================================================================
+  # 2. Base de Datos Documental (MongoDB 7)
+  # ============================================================================
   mongo:
     image: mongo:7
     container_name: cinetrack_mongo
@@ -21,11 +32,108 @@ services:
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_DATABASE: cinetrack_social
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-cinetrack_social}
     volumes:
       - mongo_data:/data/db
     networks:
       - cinetrack-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # 3. Backend Central de Identidad y Catálogo (Django REST Framework)
+  # ============================================================================
+  django-backend:
+    build:
+      context: ./backend-django
+      dockerfile: Dockerfile
+    container_name: cinetrack_django
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-cinetrack-default-key-dev}
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: "*"
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: ${DB_NAME:-cinetrack_db}
+      DB_USER: ${DB_USER:-cinetrack_user}
+      DB_PASSWORD: ${DB_PASSWORD:-cinetrack_pass}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-super-secret-jwt-signing-key-shared-between-services}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cinetrack-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/genres/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # 4. Backend de Reseñas, Capa Social y Realtime (Node.js / Express / Socket.IO)
+  # ============================================================================
+  node-backend:
+    build:
+      context: ./backend-node
+      dockerfile: Dockerfile
+    container_name: cinetrack_node
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongo:27017/${MONGO_DB:-cinetrack_social}
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-super-secret-jwt-signing-key-shared-between-services}
+      DJANGO_API_URL: http://django-backend:8000/api/v1
+      AI_SERVICE_URL: http://service-ai:8002/ai
+      AI_TIMEOUT_MS: 4000
+    depends_on:
+      mongo:
+        condition: service_healthy
+      django-backend:
+        condition: service_started
+      service-ai:
+        condition: service_started
+    networks:
+      - cinetrack-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # 5. Microservicio de Inteligencia Artificial (FastAPI + Groq Cloud)
+  # ============================================================================
+  service-ai:
+    build:
+      context: ./service-ai
+      dockerfile: Dockerfile
+    container_name: cinetrack_ai
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      PORT: 8002
+      ENVIRONMENT: production
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.1-8b-instant}
+      REQUEST_TIMEOUT_SECONDS: 2.8
+    networks:
+      - cinetrack-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8002/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

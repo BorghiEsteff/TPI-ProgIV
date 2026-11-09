@@ -1,11 +1,13 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.routers import DefaultRouter
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from graphene_django.views import GraphQLView
 
 from catalog.views import (
     GenreViewSet,
@@ -27,9 +29,11 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Autenticación y Autorización Centralizada (TP 2)
     path("api/v1/auth/", include("users.urls")),
-    # API endpoints de catálogo y tracking
+    # API endpoints REST de catálogo y tracking
     path("api/v1/", include(router.urls)),
-    # Documentación OpenAPI / Swagger
+    # Capa GraphQL (TP 4)
+    path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True)), name="graphql"),
+    # Documentación OpenAPI 3.0 / Swagger / ReDoc (TP 4)
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
