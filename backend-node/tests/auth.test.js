@@ -1,6 +1,9 @@
 import { jest, describe, test, expect, beforeAll } from '@jest/globals';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import { authenticateJWT, authorizeRoles } from '../src/middlewares/authMiddleware.js';
+import { updateReview, deleteReview } from '../src/controllers/reviewController.js';
+import Review from '../src/models/Review.js';
 
 describe('TP 2 - Tests de Seguridad y Autenticación JWT', () => {
   const secretKey = 'test-secret-key-shared-with-django-12345';
@@ -125,5 +128,70 @@ describe('TP 2 - Tests de Seguridad y Autenticación JWT', () => {
         error: expect.objectContaining({ code: 'FORBIDDEN_ROLE' }),
       })
     );
+  });
+
+  // ── Pruebas de Autoría (OWASP A01: Broken Access Control) ──────────────────
+  test('7. Autoría: Impide con 403 que un usuario modifique una reseña ajena', async () => {
+    const mockReviewInstance = {
+      _id: new mongoose.Types.ObjectId(),
+      userId: 'user-original-owner',
+      rating: 8,
+      comment: 'Comentario original',
+      save: jest.fn(),
+    };
+
+    jest.spyOn(Review, 'findById').mockResolvedValue(mockReviewInstance);
+
+    const req = {
+      params: { id: mockReviewInstance._id.toString() },
+      body: { rating: 5, comment: 'Intento de edicion maliciosa' },
+      user: { id: 'user-malicious-attacker', role: 'USER' },
+    };
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    await updateReview(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: 'FORBIDDEN_NOT_AUTHOR' }),
+      })
+    );
+    expect(mockReviewInstance.save).not.toHaveBeenCalled();
+  });
+
+  test('8. Autoría: Impide con 403 que un usuario elimine una reseña ajena', async () => {
+    const mockReviewInstance = {
+      _id: new mongoose.Types.ObjectId(),
+      userId: 'user-original-owner',
+      mediaItemId: 1,
+    };
+
+    jest.spyOn(Review, 'findById').mockResolvedValue(mockReviewInstance);
+    jest.spyOn(Review, 'findByIdAndDelete').mockResolvedValue(mockReviewInstance);
+
+    const req = {
+      params: { id: mockReviewInstance._id.toString() },
+      user: { id: 'user-malicious-attacker', role: 'USER' },
+    };
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+    const next = jest.fn();
+
+    await deleteReview(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.objectContaining({ code: 'FORBIDDEN_NOT_AUTHOR' }),
+      })
+    );
+    expect(Review.findByIdAndDelete).not.toHaveBeenCalled();
   });
 });
