@@ -12,7 +12,12 @@ const app = express();
 
 // ── Middlewares globales ──────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false }));
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*' }));
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN || '*',
+    exposedHeaders: ['X-Degraded-Mode', 'X-Degraded-AI'],
+  })
+);
 app.use(express.json());
 
 // Logging básico
