@@ -1,0 +1,74 @@
+.ct-poster-frame {
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  overflow: hidden;
+  background-color: #27272a;
+  border-bottom: 1px solid var(--ct-border);
+}
+
+.ct-poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ct-poster-fallback {
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  background: linear-gradient(160deg, #27272a 0%, #18181b 100%);
+  color: #f4f4f5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+  border-bottom: 1px solid var(--ct-border);
+}
+
+.ct-media-card {
+  background-color: var(--ct-surface);
+  border: 1px solid var(--ct-border) !important;
+  box-shadow: var(--ct-shadow-sm) !important;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.ct-media-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ct-shadow-md) !important;
+}
+
+.ct-badge-pelicula {
+  background-color: #18181b !important;
+  color: #ffffff !important;
+}
+
+.ct-badge-serie {
+  background-color: #1e3a8a !important;
+  color: #ffffff !important;
+}
+
+.ct-navbar {
+  background-color: #18181b !important;
+  border-bottom: 2px solid var(--ct-accent);
+}
+
+.ct-navbar .nav-link,
+.ct-navbar .btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 767.98px) {
+  .btn,
+  .form-control,
+  .form-select {
+    min-height: 44px;
+  }
+
+  .btn-sm {
+    min-height: 40px;
+  }
+}

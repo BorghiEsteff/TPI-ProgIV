@@ -1,13 +1,5 @@
 import axios from 'axios';
 
-/**
- * Cliente HTTP para el microservicio de IA (FastAPI + Ollama).
- * Especificado en TP 3: Detección automática de spoilers y análisis de sentimiento.
- *
- * Configuración:
- * - AI_SERVICE_URL: http://localhost:8002/ai
- * - AI_TIMEOUT_MS: 4000 ms
- */
 export const aiClient = axios.create({
   baseURL: process.env.AI_SERVICE_URL || 'http://localhost:8002/ai',
   timeout: parseInt(process.env.AI_TIMEOUT_MS, 10) || 4000,
@@ -17,44 +9,95 @@ export const aiClient = axios.create({
   },
 });
 
-/**
- * Analiza un comentario para detectar si contiene spoilers y su polaridad emocional.
- *
- * @param {string} comment - Texto del comentario/reseña a clasificar.
- * @param {string|number} mediaItemId - ID de la obra multimedia.
- * @returns {Promise<{ containsSpoiler: boolean, confidence: number, sentiment: string, degraded?: boolean }>}
- */
-export const analyzeReviewForSpoilers = async (comment, mediaItemId) => {
-  try {
-    const response = await aiClient.post('/review-guard', {
-      comment,
-      media_item_id: Number(mediaItemId),
-    });
+const normalizeText = (text = '') =>
+  String(text)
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '');
 
+const localDeterministicFallback = (prompt, candidates) => {
+  if (!candidates || candidates.length === 0) {
     return {
-      containsSpoiler: Boolean(response.data.contains_spoiler),
-      confidence: response.data.confidence ?? 1.0,
-      sentiment: response.data.sentiment || 'NEUTRAL',
-      degraded: false,
-    };
-  } catch (error) {
-    // Modo de contingencia/resiliencia ante indisponibilidad del servicio de IA o timeout de 4s
-    console.warn(
-      `[WARN] AI Microservice unavailable for review-guard (mediaItemId=${mediaItemId}): ${error.message}`
-    );
-
-    return {
-      containsSpoiler: false, // Contingencia segura: no censurar preventivamente
-      confidence: 0.0,
-      sentiment: 'UNKNOWN',
+      message: 'No tengo coincidencias de ese tipo en el catálogo. Prueba ampliar tus criterios.',
+      recommendations: [],
       degraded: true,
     };
+  }
+
+  const normPrompt = normalizeText(prompt);
+  const yearMatch = normPrompt.match(/\b(19\d{2}|20\d{2})\b/);
+  const targetYear = yearMatch ? Number(yearMatch[1]) : null;
+  const wantsKdrama = normPrompt.includes('kdrama') || normPrompt.includes('k-drama');
+  const wantsSerie = wantsKdrama || normPrompt.includes('serie');
+  const wantsMovie = normPrompt.includes('pelicula') || normPrompt.includes('peli');
+
+  const filtered = candidates.filter((c) => {
+    if (wantsSerie && c.media_type !== 'SERIE') return false;
+    if (wantsMovie && c.media_type !== 'PELICULA') return false;
+    if (targetYear && c.release_year !== targetYear) return false;
+    if (wantsKdrama && normalizeText(c.country_of_origin) !== 'kr') return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    return {
+      message: 'No tengo coincidencias de ese tipo en el catálogo. Prueba ampliar tus criterios.',
+      recommendations: [],
+      degraded: true,
+    };
+  }
+
+  const tokens = normPrompt.split(/\W+/).filter((t) => t.length >= 3);
+  const scored = filtered
+    .map((c) => {
+      const hay = normalizeText(
+        `${c.title} ${c.synopsis || ''} ${(c.genres || []).join(' ')} ${c.country_of_origin || ''}`
+      );
+      const score = tokens.reduce((acc, t) => acc + (hay.includes(t) ? 1 : 0), 0);
+      return { c, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+
+  return {
+    message: `Encontré ${scored.length} opción(es) en el catálogo (modo determinista).`,
+    recommendations: scored.map(({ c }) => ({
+      media_item_id: c.id,
+      reason: `Coincide en el catálogo (${c.media_type === 'SERIE' ? 'Serie' : 'Película'}${c.release_year ? `, ${c.release_year}` : ''}).`,
+    })),
+    degraded: true,
+  };
+};
+
+export const requestCatalogRecommendations = async (prompt, candidates) => {
+  const formattedCandidates = (candidates || []).slice(0, 50).map((item) => ({
+    id: item.id,
+    title: item.title,
+    media_type: item.media_type,
+    release_year: item.release_year || (item.release_date ? Number(String(item.release_date).slice(0, 4)) : null),
+    genres: Array.isArray(item.genres)
+      ? item.genres.map((g) => (typeof g === 'string' ? g : g.name)).filter(Boolean)
+      : [],
+    country_of_origin: item.country_of_origin || '',
+    tags: Array.isArray(item.tags) ? item.tags : [],
+    synopsis: item.synopsis || '',
+  }));
+
+  try {
+    const response = await aiClient.post('/recommend', {
+      prompt,
+      candidates: formattedCandidates,
+    });
+    return response.data;
+  } catch (error) {
+    console.warn(`[WARN] AI service unavailable for /recommend: ${error.message}`);
+    return localDeterministicFallback(prompt, formattedCandidates);
   }
 };
 
 const aiService = {
   aiClient,
-  analyzeReviewForSpoilers,
+  requestCatalogRecommendations,
 };
 
 export default aiService;

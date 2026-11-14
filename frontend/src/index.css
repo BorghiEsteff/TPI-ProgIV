@@ -1,0 +1,54 @@
+:root {
+  --ct-bg: #f6f4ef;
+  --ct-surface: #ffffff;
+  --ct-surface-subtle: #efece4;
+  --ct-ink: #18181b;
+  --ct-ink-muted: #52525b;
+  --ct-accent: #991b1b;
+  --ct-accent-hover: #7f1d1d;
+  --ct-accent-soft: #fef2f2;
+  --ct-border: #e4e0d8;
+  --ct-focus: #1d4ed8;
+  --ct-shadow-sm: 0 2px 6px rgba(24, 24, 27, 0.05);
+  --ct-shadow-md: 0 8px 24px rgba(24, 24, 27, 0.08);
+  --ct-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  font-family: var(--ct-sans);
+  color: var(--ct-ink);
+  background-color: var(--ct-bg);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background-color: var(--ct-bg);
+  color: var(--ct-ink);
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: #fecaca;
+  color: #450a0a;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ct-focus);
+  outline-offset: 2px;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
