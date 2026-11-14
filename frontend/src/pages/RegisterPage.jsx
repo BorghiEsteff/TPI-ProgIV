@@ -13,7 +13,6 @@ const RegisterPage = () => {
     email: '',
     password: '',
     password_confirm: '',
-    role: 'USER',
     bio: '',
   });
   const [submitting, setSubmitting] = useState(false);
@@ -46,7 +45,6 @@ const RegisterPage = () => {
         email: formData.email.trim(),
         password: formData.password,
         password_confirm: formData.password_confirm,
-        role: formData.role,
         bio: formData.bio.trim(),
       });
       setSuccessMessage('Cuenta creada correctamente. Redirigiendo al inicio de sesion...');
@@ -154,23 +152,6 @@ const RegisterPage = () => {
                     </Form.Group>
                   </Col>
                 </Row>
-
-                <Form.Group className="mb-3" controlId="registerRole">
-                  <Form.Label>Perfil en la plataforma</Form.Label>
-                  <Form.Select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    isInvalid={Boolean(renderFieldError('role'))}
-                    disabled={submitting}
-                  >
-                    <option value="USER">USER - Espectador</option>
-                    <option value="CRITIC">CRITIC - Critico</option>
-                  </Form.Select>
-                  <Form.Control.Feedback type="invalid">
-                    {renderFieldError('role')}
-                  </Form.Control.Feedback>
-                </Form.Group>
 
                 <Form.Group className="mb-4" controlId="registerBio">
                   <Form.Label>Biografia (opcional)</Form.Label>

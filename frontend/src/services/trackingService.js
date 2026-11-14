@@ -23,3 +23,10 @@ export const deleteTracking = async (id) => {
   return response.data;
 };
 
+export const linkTrackingToMedia = async (id, mediaItemId) => {
+  const response = await djangoClient.post(`/tracking/${id}/link-media/`, {
+    media_item_id: mediaItemId,
+  });
+  return response.data;
+};
+

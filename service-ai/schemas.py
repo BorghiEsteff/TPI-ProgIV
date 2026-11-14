@@ -1,33 +1,29 @@
-from typing import Literal
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
-class ReviewGuardRequest(BaseModel):
-    comment: str = Field(
-        ...,
-        min_length=1,
-        description="Texto de la reseña o comentario a clasificar",
-    )
-    media_item_id: int = Field(
-        ...,
-        gt=0,
-        description="Identificador positivo de la obra multimedia en catálogo",
-    )
+class CandidateMedia(BaseModel):
+    id: int
+    title: str
+    media_type: str
+    release_year: Optional[int] = None
+    genres: List[str] = Field(default_factory=list)
+    country_of_origin: str = ""
+    tags: List[str] = Field(default_factory=list)
+    synopsis: str = ""
 
 
-class ReviewGuardResponse(BaseModel):
-    contains_spoiler: bool = Field(
-        ...,
-        description="Indica si la reseña revela giros argumentales críticos o finales",
-    )
-    confidence: float = Field(
-        ...,
-        ge=0.0,
-        le=1.0,
-        description="Grado de certeza del modelo o analizador (0.0 a 1.0)",
-    )
-    sentiment: Literal["POSITIVE", "NEGATIVE", "NEUTRAL"] = Field(
-        ...,
-        description="Polaridad emocional detectada en el comentario",
-    )
+class RecommendRequest(BaseModel):
+    prompt: str = Field(..., min_length=1, max_length=500, description="Consulta en lenguaje natural")
+    candidates: List[CandidateMedia] = Field(default_factory=list, max_length=50)
 
+
+class RecommendationItem(BaseModel):
+    media_item_id: int
+    reason: str
+
+
+class RecommendResponse(BaseModel):
+    message: str
+    recommendations: List[RecommendationItem] = Field(default_factory=list)
+    degraded: bool = False

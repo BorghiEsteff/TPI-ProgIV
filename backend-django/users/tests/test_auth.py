@@ -26,8 +26,8 @@ class TestAuthAndJWTSecurity:
             email="tester@cinetrack.local",
             username="tester_jwt",
             password=self.password,
-            role=User.Role.CRITIC,
-            bio="Crítico de pruebas",
+            role=User.Role.USER,
+            bio="Usuario de pruebas",
         )
 
         # Crear item de catalogo para test de tracking
@@ -61,7 +61,7 @@ class TestAuthAndJWTSecurity:
         assert "access" in data
         assert "refresh" in data
         assert data["user"]["email"] == "tester@cinetrack.local"
-        assert data["user"]["role"] == User.Role.CRITIC
+        assert data["user"]["role"] == User.Role.USER
 
         # Decodificar el token con la clave compartida HS256
         access_token = data["access"]
@@ -74,7 +74,7 @@ class TestAuthAndJWTSecurity:
         assert decoded_payload["user_id"] == self.user.id
         assert decoded_payload["email"] == self.user.email
         assert decoded_payload["username"] == self.user.username
-        assert decoded_payload["role"] == User.Role.CRITIC
+        assert decoded_payload["role"] == User.Role.USER
 
     def test_rejected_login_invalid_credentials(self):
         """Verificar rechazo de login ante credenciales erróneas (401 Unauthorized)."""

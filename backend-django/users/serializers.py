@@ -24,21 +24,27 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
 
         # Inyectar claims personalizados en el payload del access token
+        role = getattr(user, "role", "USER")
+        if role == "CRITIC":
+            role = "USER"
         token["user_id"] = user.id
         token["username"] = user.username
         token["email"] = user.email
-        token["role"] = getattr(user, "role", "USER")
+        token["role"] = role
 
         return token
 
     def validate(self, attrs):
         data = super().validate(attrs)
+        role = getattr(self.user, "role", "USER")
+        if role == "CRITIC":
+            role = "USER"
         # Añadir información del usuario en el cuerpo de la respuesta HTTP de login
         data["user"] = {
             "id": self.user.id,
             "username": self.user.username,
             "email": self.user.email,
-            "role": getattr(self.user, "role", "USER"),
+            "role": role,
             "bio": getattr(self.user, "bio", ""),
         }
         return data
@@ -62,10 +68,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             "bio",
             "created_at",
         ]
-        read_only_fields = ["id", "created_at"]
-        extra_kwargs = {
-            "role": {"default": "USER"},
-        }
+        read_only_fields = ["id", "role", "created_at"]
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
@@ -79,8 +82,15 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("password_confirm")
+        validated_data.pop("role", None)
+        validated_data.pop("is_staff", None)
+        validated_data.pop("is_superuser", None)
         password = validated_data.pop("password")
-        user = User.objects.create_user(password=password, **validated_data)
+        user = User.objects.create_user(
+            password=password,
+            role=User.Role.USER,
+            **validated_data,
+        )
         return user
 
 
@@ -88,5 +98,5 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["id", "email", "username", "role", "bio", "created_at"]
-        read_only_fields = ["id", "email", "created_at"]
+        read_only_fields = ["id", "email", "role", "created_at"]
 

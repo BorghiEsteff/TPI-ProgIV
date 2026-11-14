@@ -5,7 +5,6 @@ from django.contrib.auth.models import AbstractUser
 class CustomUser(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = "ADMIN", "Administrador"
-        CRITIC = "CRITIC", "Crítico"
         USER = "USER", "Usuario"
 
     email = models.EmailField(unique=True, verbose_name="Correo Electrónico")

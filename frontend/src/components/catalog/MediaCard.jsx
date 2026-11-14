@@ -36,7 +36,9 @@ const MediaCard = ({
       <Card.Body className="d-flex flex-column">
         <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
           <Card.Title as="h5" className="mb-0 fs-6 fw-bold">
-            {item.title}
+            <Link to={`/media/${item.id}`} className="text-decoration-none text-dark">
+              {item.title}
+            </Link>
           </Card.Title>
           <Badge bg={isSerie ? 'info' : 'primary'} text={isSerie ? 'dark' : 'light'}>
             {item.media_type}
@@ -61,25 +63,14 @@ const MediaCard = ({
         </Card.Text>
 
         <div className="d-grid gap-2 mt-3">
-          <div className="d-flex gap-2">
-            <Button
-              as={Link}
-              to={`/media/${item.id}`}
-              variant="outline-primary"
-              size="sm"
-              className="flex-grow-1"
-            >
-              Detalle y Resenas
-            </Button>
-            <Button
-              as={Link}
-              to={`/watch-rooms/${item.id}`}
-              variant="outline-dark"
-              size="sm"
-            >
-              Sala en Vivo
-            </Button>
-          </div>
+          <Button
+            as={Link}
+            to={`/media/${item.id}`}
+            variant="outline-primary"
+            size="sm"
+          >
+            Ver ficha
+          </Button>
 
           {isAuthenticated && onTrackMedia && (
             <Button

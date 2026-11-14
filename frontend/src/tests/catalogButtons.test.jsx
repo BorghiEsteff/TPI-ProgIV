@@ -54,7 +54,7 @@ describe('Botones e interacciones de Catalogo', () => {
     expect(onReset).toHaveBeenCalledTimes(1);
   });
 
-  it('MediaCard muestra enlaces de detalle/sala y ejecuta onTrackMedia solo cuando hay sesion', async () => {
+  it('MediaCard muestra enlace a ficha tecnica sin Sala en Vivo y ejecuta onTrackMedia solo cuando hay sesion', async () => {
     const user = userEvent.setup();
     const onTrackMedia = vi.fn();
     const sampleMedia = {
@@ -77,14 +77,13 @@ describe('Botones e interacciones de Catalogo', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('button', { name: 'Detalle y Resenas' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Ver ficha' })).toHaveAttribute(
       'href',
       '/media/42'
     );
-    expect(screen.getByRole('button', { name: 'Sala en Vivo' })).toHaveAttribute(
-      'href',
-      '/watch-rooms/42'
-    );
+    expect(
+      screen.queryByRole('button', { name: 'Sala en Vivo' })
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Agregar a Mi Progreso' })
     ).not.toBeInTheDocument();

@@ -4,7 +4,6 @@ import { useAuth } from '../../hooks/useAuth';
 
 const ROLE_VARIANT = {
   ADMIN: 'danger',
-  CRITIC: 'info',
   USER: 'secondary',
 };
 
@@ -27,16 +26,29 @@ const AppNavbar = () => {
         <Navbar.Collapse id="cinetrack-navbar">
           <Nav className="me-auto">
             <Nav.Link as={Link} to="/">
-              Catalogo
+              Catálogo
             </Nav.Link>
             {isAuthenticated && (
-              <Nav.Link as={Link} to="/my-tracking">
-                Mi Progreso
-              </Nav.Link>
+              <>
+                <Nav.Link as={Link} to="/my-tracking">
+                  Mi CineTrack
+                </Nav.Link>
+                <Nav.Link as={Link} to="/new-entry">
+                  Agregar Obra
+                </Nav.Link>
+                <Nav.Link as={Link} to="/my-submissions">
+                  Mis Propuestas
+                </Nav.Link>
+                <Nav.Link as={Link} to="/recommendations">
+                  Recomendaciones IA
+                </Nav.Link>
+                {role === 'ADMIN' && (
+                  <Nav.Link as={Link} to="/admin/submissions">
+                    Moderación
+                  </Nav.Link>
+                )}
+              </>
             )}
-            <Nav.Link as={Link} to="/watch-rooms/1">
-              WatchRooms
-            </Nav.Link>
           </Nav>
 
           <Nav className="align-items-lg-center gap-2">
@@ -51,13 +63,13 @@ const AppNavbar = () => {
                   )}
                 </span>
                 <Button variant="outline-light" size="sm" onClick={handleLogout}>
-                  Cerrar Sesion
+                  Cerrar Sesión
                 </Button>
               </>
             ) : (
               <>
                 <Nav.Link as={Link} to="/login">
-                  Iniciar Sesion
+                  Iniciar Sesión
                 </Nav.Link>
                 <Button as={Link} to="/register" variant="primary" size="sm">
                   Registrarse
@@ -72,4 +84,3 @@ const AppNavbar = () => {
 };
 
 export default AppNavbar;
-

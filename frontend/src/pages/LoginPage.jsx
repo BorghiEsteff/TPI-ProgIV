@@ -53,7 +53,7 @@ const LoginPage = () => {
             <Card.Body className="p-4">
               <h2 className="h4 mb-3 text-center">Iniciar Sesion en CineTrack</h2>
               <p className="text-muted small text-center mb-4">
-                Ingrese sus credenciales para acceder al seguimiento personal, resenas y salas en vivo.
+                Ingrese sus credenciales para acceder a su diario privado de series y peliculas.
               </p>
 
               <ErrorMessage error={error} />

@@ -9,9 +9,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Cargar variables de entorno desde .env
 load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-cinetrack-default-key-dev")
-
 DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "yes")
+
+_DEV_SECRET_KEY = "django-insecure-cinetrack-default-key-dev"
+SECRET_KEY = os.getenv("SECRET_KEY", _DEV_SECRET_KEY)
+if not DEBUG and (not SECRET_KEY or SECRET_KEY == _DEV_SECRET_KEY):
+    raise RuntimeError("SECRET_KEY debe configurarse explícitamente cuando DEBUG=False.")
 
 ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",") if host.strip()]
 if "testserver" not in ALLOWED_HOSTS:
@@ -79,6 +82,8 @@ DB_USER = os.getenv("DB_USER", "cinetrack_user")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "cinetrack_pass")
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
+DB_STRICT = os.getenv("DB_STRICT", "").lower() in ("1", "true", "yes")
+_EXPLICIT_PG = "DB_ENGINE" in os.environ and "postgresql" in os.environ["DB_ENGINE"]
 
 def _get_database_config():
     import socket
@@ -91,10 +96,13 @@ def _get_database_config():
         "PORT": DB_PORT,
     }
     if "sqlite" in DB_ENGINE:
+        sqlite_name = os.getenv("SQLITE_DB_NAME", "db.sqlite3")
         return {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "NAME": BASE_DIR / sqlite_name,
         }
+    if DB_STRICT or _EXPLICIT_PG:
+        return pg_config
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(0.5)
@@ -155,6 +163,9 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
     "DEFAULT_FILTER_BACKENDS": [
@@ -167,10 +178,10 @@ REST_FRAMEWORK = {
 }
 
 # SimpleJWT Configuration
-JWT_SIGNING_KEY = os.getenv(
-    "JWT_SIGNING_KEY",
-    "super-secret-jwt-signing-key-shared-between-services",
-)
+_DEV_JWT_KEY = "super-secret-jwt-signing-key-shared-between-services"
+JWT_SIGNING_KEY = os.getenv("JWT_SIGNING_KEY", _DEV_JWT_KEY)
+if not DEBUG and (not JWT_SIGNING_KEY or JWT_SIGNING_KEY == _DEV_JWT_KEY):
+    raise RuntimeError("JWT_SIGNING_KEY debe configurarse explícitamente cuando DEBUG=False.")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
@@ -204,7 +215,7 @@ GRAPHENE = {
 }
 
 # CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")

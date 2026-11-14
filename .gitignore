@@ -19,8 +19,15 @@ env/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+db.qa.sqlite3
+db.qa.sqlite3-journal
+backups/
 media/
 staticfiles/
+
+# Playwright artifacts
+frontend/playwright-report/
+frontend/test-results/
 
 # Node.js specific
 node_modules/

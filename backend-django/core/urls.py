@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from django.views.decorators.csrf import csrf_exempt
@@ -12,29 +14,31 @@ from graphene_django.views import GraphQLView
 from catalog.views import (
     GenreViewSet,
     MediaItemViewSet,
+    MediaSubmissionViewSet,
+    AdminSubmissionViewSet,
     SeasonViewSet,
     EpisodeViewSet,
 )
 from tracking.views import UserProgressViewSet
 
-# Registro de routers para la API REST v1
 router = DefaultRouter()
 router.register(r"genres", GenreViewSet, basename="genre")
 router.register(r"media", MediaItemViewSet, basename="media")
 router.register(r"seasons", SeasonViewSet, basename="season")
 router.register(r"episodes", EpisodeViewSet, basename="episode")
 router.register(r"tracking", UserProgressViewSet, basename="tracking")
+router.register(r"submissions", MediaSubmissionViewSet, basename="submission")
+router.register(r"admin/submissions", AdminSubmissionViewSet, basename="admin-submission")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # Autenticación y Autorización Centralizada (TP 2)
     path("api/v1/auth/", include("users.urls")),
-    # API endpoints REST de catálogo y tracking
     path("api/v1/", include(router.urls)),
-    # Capa GraphQL (TP 4)
-    path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True)), name="graphql"),
-    # Documentación OpenAPI 3.0 / Swagger / ReDoc (TP 4)
+    path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=settings.DEBUG)), name="graphql"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -96,7 +96,7 @@ class Query(graphene.ObjectType):
         try:
             return (
                 MediaItem.objects.prefetch_related("genres", "seasons__episodes")
-                .get(pk=id)
+                .get(pk=id, is_active=True)
             )
         except MediaItem.DoesNotExist:
             return None
