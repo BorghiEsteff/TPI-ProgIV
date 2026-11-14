@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Badge, Button, Card, Col, Form, Row } from 'react-bootstrap';
+import { Alert, Badge, Button, Card, Col, Form, Row } from 'react-bootstrap';
+import GenreMultiSelect from '../common/GenreMultiSelect';
 import DuplicateCandidates from './DuplicateCandidates';
 
 const SubmissionQueue = ({
   submissions = [],
+  genres = [],
   candidatesById = {},
+  duplicateConfirmById = {},
   onLoadCandidates,
   onPublish,
   onMerge,
@@ -13,7 +16,15 @@ const SubmissionQueue = ({
 }) => {
   const [rejectReasons, setRejectReasons] = useState({});
   const [editTitles, setEditTitles] = useState({});
+  const [editGenresById, setEditGenresById] = useState({});
   const [manualMergeIds, setManualMergeIds] = useState({});
+
+  const getSelectedGenres = (sub) => {
+    if (Object.prototype.hasOwnProperty.call(editGenresById, sub.id)) {
+      return editGenresById[sub.id];
+    }
+    return (sub.genres || []).map((g) => Number(g.id));
+  };
 
   return (
     <div className="d-flex flex-column gap-3">
@@ -51,6 +62,12 @@ const SubmissionQueue = ({
                         <Badge bg={sub.status === 'PENDING' ? 'warning' : 'secondary'} text={sub.status === 'PENDING' ? 'dark' : 'light'}>
                           {sub.status}
                         </Badge>
+                        {Array.isArray(sub.genres) &&
+                          sub.genres.map((g) => (
+                            <Badge key={g.id} bg="light" text="dark" className="border">
+                              {g.name}
+                            </Badge>
+                          ))}
                       </div>
                     </div>
 
@@ -76,6 +93,42 @@ const SubmissionQueue = ({
 
                   {sub.status === 'PENDING' && (
                     <div className="d-flex flex-column gap-2 pt-2 border-top">
+                      <GenreMultiSelect
+                        genres={genres}
+                        selectedIds={getSelectedGenres(sub)}
+                        onChange={(nextIds) =>
+                          setEditGenresById((prev) => ({ ...prev, [sub.id]: nextIds }))
+                        }
+                        disabled={isBusy}
+                        label="Categorías / Géneros al publicar *"
+                        showValidation
+                        testIdPrefix={`admin-sub-genre-${sub.id}`}
+                      />
+
+                      {duplicateConfirmById[sub.id] && (
+                        <Alert variant="warning" className="mb-1 py-2">
+                          <div className="small fw-semibold mb-2">
+                            {duplicateConfirmById[sub.id].message ||
+                              'Existe una obra muy similar en el catálogo canónico. Puedes vincularla arriba o confirmar la creación separada.'}
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="warning"
+                            disabled={isBusy || getSelectedGenres(sub).length < 1}
+                            onClick={() =>
+                              onPublish(sub.id, {
+                                title: (editTitles[sub.id] ?? sub.title).trim(),
+                                genres: getSelectedGenres(sub),
+                                confirm_new: true,
+                              })
+                            }
+                            data-testid={`confirm-publish-new-${sub.id}`}
+                          >
+                            Confirmar y publicar como obra nueva
+                          </Button>
+                        </Alert>
+                      )}
+
                       <Row className="g-2 align-items-center">
                         <Col md={5}>
                           <Form.Control
@@ -92,12 +145,14 @@ const SubmissionQueue = ({
                           <Button
                             size="sm"
                             variant="success"
-                            disabled={isBusy}
+                            disabled={isBusy || getSelectedGenres(sub).length < 1}
                             onClick={() =>
                               onPublish(sub.id, {
                                 title: (editTitles[sub.id] ?? sub.title).trim(),
+                                genres: getSelectedGenres(sub),
                               })
                             }
+                            data-testid={`publish-sub-${sub.id}`}
                           >
                             Publicar como obra nueva
                           </Button>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Badge, Container } from 'react-bootstrap';
+import { Alert, Badge, Button, Container } from 'react-bootstrap';
 import MediaFilterBar from '../components/catalog/MediaFilterBar';
 import MediaGrid from '../components/catalog/MediaGrid';
 import DegradedBanner from '../components/common/DegradedBanner';
@@ -11,8 +11,8 @@ import * as catalogService from '../services/catalogService';
 import * as trackingService from '../services/trackingService';
 
 const ALL_MEDIA_GRAPHQL_QUERY = `
-  query AllMediaItems($mediaType: String) {
-    allMediaItems(mediaType: $mediaType) {
+  query AllMediaItems($mediaType: String, $genreId: Int, $search: String) {
+    allMediaItems(mediaType: $mediaType, genreId: $genreId, search: $search) {
       id
       title
       mediaType
@@ -76,6 +76,9 @@ const CatalogPage = () => {
   const [genres, setGenres] = useState([]);
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [queryMode, setQueryMode] = useState('REST');
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 12;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -101,7 +104,7 @@ const CatalogPage = () => {
       return;
     }
     try {
-      const { data } = await trackingService.getMyTracking();
+      const { data } = await trackingService.getMyTracking({ page_size: 100 });
       const list = Array.isArray(data) ? data : data?.results || [];
       setTrackedMediaIds(new Set(list.map((entry) => Number(entry.media_item))));
     } catch {
@@ -110,7 +113,7 @@ const CatalogPage = () => {
   }, [isAuthenticated]);
 
   const loadCatalog = useCallback(
-    async (activeFilters = filters, activeMode = queryMode) => {
+    async (activeFilters = filters, activeMode = queryMode, activePage = page) => {
       setLoading(true);
       setError(null);
 
@@ -120,24 +123,22 @@ const CatalogPage = () => {
           if (activeFilters.media_type) {
             variables.mediaType = activeFilters.media_type;
           }
+          if (activeFilters.genre) {
+            variables.genreId = Number(activeFilters.genre);
+          }
+          if (activeFilters.search.trim()) {
+            variables.search = activeFilters.search.trim();
+          }
           const { data, isDegraded: degraded } = await catalogService.queryCatalogGraphQL(
             ALL_MEDIA_GRAPHQL_QUERY,
             variables
           );
-          let normalized = (data?.allMediaItems || []).map(normalizeGraphQLMediaItem);
-          if (activeFilters.search.trim()) {
-            const term = activeFilters.search.trim().toLowerCase();
-            normalized = normalized.filter(
-              (m) =>
-                m.title?.toLowerCase().includes(term) ||
-                m.producer?.toLowerCase().includes(term) ||
-                m.synopsis?.toLowerCase().includes(term)
-            );
-          }
+          const normalized = (data?.allMediaItems || []).map(normalizeGraphQLMediaItem);
           setItems(normalized);
+          setTotalCount(normalized.length);
           setIsDegraded(Boolean(degraded));
         } else {
-          const params = {};
+          const params = { page: activePage, page_size: pageSize };
           if (activeFilters.search.trim()) params.search = activeFilters.search.trim();
           if (activeFilters.media_type) params.media_type = activeFilters.media_type;
           if (activeFilters.genre) params.genres = activeFilters.genre;
@@ -145,6 +146,7 @@ const CatalogPage = () => {
           const { data, isDegraded: degraded } = await catalogService.getMediaList(params);
           const list = Array.isArray(data) ? data : data?.results || [];
           setItems(list);
+          setTotalCount(Array.isArray(data) ? list.length : data?.count ?? list.length);
           setIsDegraded(Boolean(degraded));
         }
       } catch (err) {
@@ -153,7 +155,7 @@ const CatalogPage = () => {
         setLoading(false);
       }
     },
-    [filters, queryMode]
+    [filters, queryMode, page]
   );
 
   useEffect(() => {
@@ -165,17 +167,25 @@ const CatalogPage = () => {
   }, [loadMyTrackedIds]);
 
   useEffect(() => {
-    loadCatalog(filters, queryMode);
+    setPage(1);
+    loadCatalog(filters, queryMode, 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.media_type, filters.genre, queryMode]);
 
   const handleSearchSubmit = () => {
-    loadCatalog(filters, queryMode);
+    setPage(1);
+    loadCatalog(filters, queryMode, 1);
   };
 
   const handleReset = () => {
     setFilters(INITIAL_FILTERS);
-    loadCatalog(INITIAL_FILTERS, queryMode);
+    setPage(1);
+    loadCatalog(INITIAL_FILTERS, queryMode, 1);
+  };
+
+  const handlePageChange = (nextPage) => {
+    setPage(nextPage);
+    loadCatalog(filters, queryMode, nextPage);
   };
 
   const handleTrackMedia = async (mediaItem) => {
@@ -202,10 +212,12 @@ const CatalogPage = () => {
     }
   };
 
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
   const resultLabel = useMemo(() => {
-    const count = items.length;
+    const count = queryMode === 'GRAPHQL' ? items.length : totalCount || items.length;
     return `${count} ${count === 1 ? 'obra encontrada' : 'obras encontradas'}`;
-  }, [items.length]);
+  }, [items.length, totalCount, queryMode]);
 
   return (
     <Container className="py-4">
@@ -269,6 +281,36 @@ const CatalogPage = () => {
             trackingLoadingId={trackingLoadingId}
             onTrackMedia={handleTrackMedia}
           />
+          {queryMode === 'REST' && totalPages > 1 && (
+            <div
+              className="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4 pt-3 border-top"
+              data-testid="catalog-pagination"
+            >
+              <span className="text-muted small">
+                Página {page} de {totalPages} ({totalCount} obras)
+              </span>
+              <div className="d-flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline-secondary"
+                  disabled={page <= 1}
+                  onClick={() => handlePageChange(page - 1)}
+                  data-testid="catalog-prev-page"
+                >
+                  Anterior
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline-secondary"
+                  disabled={page >= totalPages}
+                  onClick={() => handlePageChange(page + 1)}
+                  data-testid="catalog-next-page"
+                >
+                  Siguiente
+                </Button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </Container>

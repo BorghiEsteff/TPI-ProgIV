@@ -30,3 +30,15 @@ export const linkTrackingToMedia = async (id, mediaItemId) => {
   return response.data;
 };
 
+export const getReconciliations = async () => {
+  const response = await djangoClient.get('/tracking/reconciliations/');
+  return Array.isArray(response.data) ? response.data : response.data?.results || [];
+};
+
+export const reconcileTrackingEntry = async (id, resolution = 'keep_canonical') => {
+  const response = await djangoClient.post(`/tracking/${id}/reconcile/`, {
+    resolution,
+  });
+  return response.data;
+};
+

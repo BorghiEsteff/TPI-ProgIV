@@ -20,8 +20,8 @@ export const getMediaDetail = async (id) => {
 };
 
 export const getGenres = async () => {
-  const response = await djangoClient.get('/genres/');
-  return response.data;
+  const response = await djangoClient.get('/genres/', { params: { page_size: 100 } });
+  return Array.isArray(response.data) ? response.data : response.data?.results || [];
 };
 
 export const queryCatalogGraphQL = async (query, variables = {}) => {

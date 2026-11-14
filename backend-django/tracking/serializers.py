@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 from .models import UserProgress
-from catalog.serializers import MediaItemSerializer
+from catalog.serializers import GenreSerializer, MediaItemSerializer
 
 
 class UserProgressSerializer(serializers.ModelSerializer):
@@ -10,6 +10,7 @@ class UserProgressSerializer(serializers.ModelSerializer):
     display_poster_url = serializers.SerializerMethodField()
     display_media_type = serializers.SerializerMethodField()
     display_release_year = serializers.SerializerMethodField()
+    display_genres = serializers.SerializerMethodField()
     submission_status = serializers.SerializerMethodField()
     submission_rejection_reason = serializers.SerializerMethodField()
     is_published = serializers.SerializerMethodField()
@@ -36,6 +37,7 @@ class UserProgressSerializer(serializers.ModelSerializer):
             "display_poster_url",
             "display_media_type",
             "display_release_year",
+            "display_genres",
             "submission_status",
             "submission_rejection_reason",
             "is_published",
@@ -52,11 +54,15 @@ class UserProgressSerializer(serializers.ModelSerializer):
         return obj.display_title
 
     def get_display_poster_url(self, obj):
+        url = ""
         if obj.media_item:
-            return obj.media_item.poster_image or ""
-        if obj.source_submission:
-            return obj.source_submission.effective_poster_url
-        return ""
+            url = obj.media_item.poster_image or ""
+        elif obj.source_submission:
+            url = obj.source_submission.effective_poster_url
+        request = self.context.get("request")
+        if url and url.startswith("/") and request is not None:
+            return request.build_absolute_uri(url)
+        return url
 
     def get_display_media_type(self, obj):
         if obj.media_item:
@@ -71,6 +77,13 @@ class UserProgressSerializer(serializers.ModelSerializer):
         if obj.source_submission:
             return obj.source_submission.release_year
         return None
+
+    def get_display_genres(self, obj):
+        if obj.media_item:
+            return GenreSerializer(obj.media_item.genres.all(), many=True).data
+        if obj.source_submission:
+            return GenreSerializer(obj.source_submission.genres.all(), many=True).data
+        return []
 
     def get_submission_status(self, obj):
         if obj.source_submission:

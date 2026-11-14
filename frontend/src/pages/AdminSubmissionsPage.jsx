@@ -4,12 +4,15 @@ import SubmissionQueue from '../components/admin/SubmissionQueue';
 import EmptyState from '../components/common/EmptyState';
 import ErrorMessage from '../components/common/ErrorMessage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import * as catalogService from '../services/catalogService';
 import * as submissionService from '../services/submissionService';
 
 const AdminSubmissionsPage = () => {
   const [statusFilter, setStatusFilter] = useState('PENDING');
   const [submissions, setSubmissions] = useState([]);
+  const [genres, setGenres] = useState([]);
   const [candidatesById, setCandidatesById] = useState({});
+  const [duplicateConfirmById, setDuplicateConfirmById] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [busyId, setBusyId] = useState(null);
@@ -19,8 +22,32 @@ const AdminSubmissionsPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await submissionService.getAdminSubmissions(filter);
+      const [data, genreList] = await Promise.all([
+        submissionService.getAdminSubmissions(filter),
+        catalogService.getGenres().catch(() => []),
+      ]);
       setSubmissions(data);
+      setGenres(genreList);
+
+      if (filter === 'PENDING' && data.length > 0) {
+        const candidateEntries = await Promise.all(
+          data.slice(0, 15).map(async (sub) => {
+            try {
+              const candidates = await submissionService.getSubmissionCandidates(sub.id);
+              return [sub.id, candidates];
+            } catch {
+              return [sub.id, null];
+            }
+          }),
+        );
+        const nextCandidates = {};
+        candidateEntries.forEach(([subId, cands]) => {
+          if (Array.isArray(cands) && cands.length > 0) {
+            nextCandidates[subId] = cands;
+          }
+        });
+        setCandidatesById((prev) => ({ ...prev, ...nextCandidates }));
+      }
     } catch (err) {
       setError(err);
     } finally {
@@ -49,9 +76,24 @@ const AdminSubmissionsPage = () => {
     setFeedback(null);
     try {
       const res = await submissionService.publishSubmission(id, payload);
+      setDuplicateConfirmById((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
       setFeedback({ variant: 'success', text: `Propuesta #${id} publicada como obra #${res.media_item_id}.` });
       await load(statusFilter);
     } catch (err) {
+      if (err?.status === 409 && err?.code === 'POSSIBLE_DUPLICATE_EXISTS') {
+        const cands = err?.details?.candidates || err?.candidates || [];
+        if (cands.length > 0) {
+          setCandidatesById((prev) => ({ ...prev, [id]: cands }));
+        }
+        setDuplicateConfirmById((prev) => ({
+          ...prev,
+          [id]: { message: err?.message, candidates: cands },
+        }));
+      }
       setFeedback({ variant: 'danger', text: err?.message || 'No se pudo publicar la propuesta.' });
     } finally {
       setBusyId(null);
@@ -126,7 +168,9 @@ const AdminSubmissionsPage = () => {
       {!loading && !error && submissions.length > 0 && (
         <SubmissionQueue
           submissions={submissions}
+          genres={genres}
           candidatesById={candidatesById}
+          duplicateConfirmById={duplicateConfirmById}
           onLoadCandidates={handleLoadCandidates}
           onPublish={handlePublish}
           onMerge={handleMerge}

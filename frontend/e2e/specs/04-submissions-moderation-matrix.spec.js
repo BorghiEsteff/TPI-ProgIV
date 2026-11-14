@@ -27,6 +27,8 @@ test.describe('Propuestas, duplicados, moderación y caso Matrix (E2E-16..E2E-26
     await pageA.getByLabel(/D[oó]nde la viste/i).selectOption('HBO / Max');
     await pageA.getByLabel(/Subir archivo/i).check();
     await pageA.locator('input[type="file"]').setInputFiles(posterAPath);
+    await pageA.locator('[data-genre-name="Ciencia Ficción"]').click();
+    await pageA.locator('[data-genre-name="Acción"]').click();
     await pageA.getByRole('button', { name: /Guardar en Mi CineTrack/i }).click();
     await expect(pageA.getByText(/pendiente de revisi[oó]n/i)).toBeVisible();
 
@@ -46,6 +48,7 @@ test.describe('Propuestas, duplicados, moderación y caso Matrix (E2E-16..E2E-26
     await pageB.getByLabel(/D[oó]nde la viste/i).selectOption('Netflix');
     await pageB.getByLabel(/Subir archivo/i).check();
     await pageB.locator('input[type="file"]').setInputFiles(posterBPath);
+    await pageB.locator('[data-genre-name="Ciencia Ficción"]').click();
     await pageB.getByRole('button', { name: /Guardar en Mi CineTrack/i }).click();
     await expect(pageB.getByText(/pendiente de revisi[oó]n/i)).toBeVisible();
 
@@ -141,6 +144,10 @@ test.describe('Propuestas, duplicados, moderación y caso Matrix (E2E-16..E2E-26
     expect(userAdminQueue.status()).toBe(403);
 
     // E2E-22: Rechazo conserva entrada privada
+    const genresRes = await request.get(`${DJANGO_API_URL}/genres/`);
+    const genresData = await genresRes.json();
+    const firstGenreId = (genresData.results || genresData)[0].id;
+
     const subRejRes = await request.post(`${DJANGO_API_URL}/submissions/`, {
       headers: headersA,
       data: {
@@ -148,6 +155,7 @@ test.describe('Propuestas, duplicados, moderación y caso Matrix (E2E-16..E2E-26
         media_type: 'PELICULA',
         poster_url: 'https://via.placeholder.com/300x450?text=Rejected',
         watch_platform: 'Cine',
+        genres: [firstGenreId],
       },
     });
     expect(subRejRes.status()).toBe(201);

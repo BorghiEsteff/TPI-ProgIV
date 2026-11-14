@@ -14,33 +14,33 @@ const MediaCard = ({
     synopsisText.length > 130 ? `${synopsisText.slice(0, 130)}...` : synopsisText;
 
   return (
-    <Card className="h-100 shadow-sm border-secondary-subtle">
+    <Card className="h-100 ct-media-card">
       {item.poster_image ? (
-        <Card.Img
-          variant="top"
-          src={item.poster_image}
-          alt={`Poster de ${item.title}`}
-          style={{ height: '220px', objectFit: 'cover' }}
-        />
+        <div className="ct-poster-frame">
+          <Card.Img
+            variant="top"
+            src={item.poster_image}
+            alt={`Poster de ${item.title}`}
+            className="ct-poster-img"
+          />
+        </div>
       ) : (
-        <div
-          className="bg-dark text-light d-flex align-items-center justify-content-center"
-          style={{ height: '140px' }}
-        >
-          <span className="small text-secondary text-uppercase fw-semibold">
-            {isSerie ? 'Serie' : 'Pelicula'}
+        <div className="ct-poster-fallback">
+          <span className="small text-uppercase fw-semibold letter-spacing-1">
+            {isSerie ? 'Serie' : 'Película'}
           </span>
+          <span className="small mt-1 opacity-75">{item.title}</span>
         </div>
       )}
 
       <Card.Body className="d-flex flex-column">
         <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
-          <Card.Title as="h5" className="mb-0 fs-6 fw-bold">
+          <Card.Title as="h2" className="mb-0 fs-6 fw-bold">
             <Link to={`/media/${item.id}`} className="text-decoration-none text-dark">
               {item.title}
             </Link>
           </Card.Title>
-          <Badge bg={isSerie ? 'info' : 'primary'} text={isSerie ? 'dark' : 'light'}>
+          <Badge bg="" className={isSerie ? 'ct-badge-serie' : 'ct-badge-pelicula'}>
             {item.media_type}
           </Badge>
         </div>

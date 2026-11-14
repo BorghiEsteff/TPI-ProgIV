@@ -94,6 +94,7 @@ class MediaItemSerializer(serializers.ModelSerializer):
 class MediaSubmissionCreateSerializer(serializers.ModelSerializer):
     watch_platform = serializers.CharField(write_only=True, required=False, allow_blank=False)
     submitted_platform = serializers.CharField(required=False, allow_blank=False)
+    genres = serializers.PrimaryKeyRelatedField(queryset=Genre.objects.all(), many=True, required=False)
 
     class Meta:
         model = MediaSubmission
@@ -107,6 +108,7 @@ class MediaSubmissionCreateSerializer(serializers.ModelSerializer):
             "submitted_platform",
             "release_year",
             "country_of_origin",
+            "genres",
             "tags",
         ]
         read_only_fields = ["id"]
@@ -116,6 +118,19 @@ class MediaSubmissionCreateSerializer(serializers.ModelSerializer):
         if not cleaned:
             raise serializers.ValidationError("El título no puede estar vacío.")
         return cleaned
+
+    def validate_genres(self, value):
+        unique_genres = []
+        seen_ids = set()
+        for genre in value or []:
+            if genre.id not in seen_ids:
+                seen_ids.add(genre.id)
+                unique_genres.append(genre)
+        if len(unique_genres) < 1:
+            raise serializers.ValidationError("Debes seleccionar al menos 1 categoría o género.")
+        if len(unique_genres) > 5:
+            raise serializers.ValidationError("Puedes seleccionar como máximo 5 categorías o géneros.")
+        return unique_genres
 
     def validate_poster_url(self, value):
         if value:
@@ -144,15 +159,24 @@ class MediaSubmissionCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"watch_platform": "La plataforma no puede estar vacía."})
             attrs["submitted_platform"] = cleaned_platform
 
+        if not instance and "genres" not in attrs:
+            raise serializers.ValidationError({"genres": "Debes seleccionar entre 1 y 5 categorías o géneros."})
+
         poster_url = attrs.get("poster_url", getattr(instance, "poster_url", ""))
         poster_file = attrs.get("poster_file", getattr(instance, "poster_file", None))
         if not poster_url and not poster_file:
             raise serializers.ValidationError({"poster_url": "Debes proporcionar una portada (URL válida o archivo)."})
         return attrs
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["genres"] = GenreSerializer(instance.genres.all(), many=True).data
+        return representation
+
 
 class MediaSubmissionMineSerializer(serializers.ModelSerializer):
     effective_poster_url = serializers.SerializerMethodField()
+    genres = GenreSerializer(many=True, read_only=True)
 
     class Meta:
         model = MediaSubmission
@@ -165,6 +189,7 @@ class MediaSubmissionMineSerializer(serializers.ModelSerializer):
             "submitted_platform",
             "release_year",
             "country_of_origin",
+            "genres",
             "tags",
             "status",
             "resolved_media",
@@ -175,12 +200,17 @@ class MediaSubmissionMineSerializer(serializers.ModelSerializer):
         ]
 
     def get_effective_poster_url(self, obj):
-        return obj.effective_poster_url
+        url = obj.effective_poster_url
+        request = self.context.get("request")
+        if url and url.startswith("/") and request is not None:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class AdminSubmissionSerializer(serializers.ModelSerializer):
     """DTO sanitizado para moderación: excluye submitted_by, notas, estrellas y progreso."""
     effective_poster_url = serializers.SerializerMethodField()
+    genres = GenreSerializer(many=True, read_only=True)
 
     class Meta:
         model = MediaSubmission
@@ -193,6 +223,7 @@ class AdminSubmissionSerializer(serializers.ModelSerializer):
             "submitted_platform",
             "release_year",
             "country_of_origin",
+            "genres",
             "tags",
             "status",
             "resolved_media",
@@ -203,4 +234,8 @@ class AdminSubmissionSerializer(serializers.ModelSerializer):
         ]
 
     def get_effective_poster_url(self, obj):
-        return obj.effective_poster_url
+        url = obj.effective_poster_url
+        request = self.context.get("request")
+        if url and url.startswith("/") and request is not None:
+            return request.build_absolute_uri(url)
+        return url

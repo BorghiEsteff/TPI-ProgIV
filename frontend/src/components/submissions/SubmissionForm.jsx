@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Card, Col, Form, ListGroup, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import * as catalogService from '../../services/catalogService';
+import GenreMultiSelect from '../common/GenreMultiSelect';
 
 const PLATFORMS = ['Netflix', 'HBO / Max', 'Prime Video', 'Disney+', 'Apple TV+', 'Cine', 'TV', 'Otro'];
 
@@ -15,6 +16,8 @@ const SubmissionForm = ({ onSubmit, submitting = false, error = null }) => {
   const [customPlatform, setCustomPlatform] = useState('');
   const [releaseYear, setReleaseYear] = useState('');
   const [countryOfOrigin, setCountryOfOrigin] = useState('');
+  const [genreIds, setGenreIds] = useState([]);
+  const [showGenreValidation, setShowGenreValidation] = useState(false);
   const [matches, setMatches] = useState([]);
 
   useEffect(() => {
@@ -37,6 +40,10 @@ const SubmissionForm = ({ onSubmit, submitting = false, error = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (genreIds.length < 1 || genreIds.length > 5) {
+      setShowGenreValidation(true);
+      return;
+    }
     const watchPlatform =
       platformChoice === 'Otro'
         ? customPlatform.trim() || 'Otro'
@@ -48,6 +55,7 @@ const SubmissionForm = ({ onSubmit, submitting = false, error = null }) => {
       fd.append('media_type', mediaType);
       fd.append('poster_file', posterFile);
       fd.append('watch_platform', watchPlatform);
+      genreIds.forEach((gid) => fd.append('genres', String(gid)));
       if (releaseYear) fd.append('release_year', String(releaseYear));
       if (countryOfOrigin.trim()) fd.append('country_of_origin', countryOfOrigin.trim());
       onSubmit(fd);
@@ -57,6 +65,7 @@ const SubmissionForm = ({ onSubmit, submitting = false, error = null }) => {
         media_type: mediaType,
         poster_url: posterUrl.trim(),
         watch_platform: watchPlatform,
+        genres: genreIds,
       };
       if (releaseYear) payload.release_year = Number(releaseYear);
       if (countryOfOrigin.trim()) payload.country_of_origin = countryOfOrigin.trim();
@@ -218,6 +227,17 @@ const SubmissionForm = ({ onSubmit, submitting = false, error = null }) => {
               </Form.Group>
             </Col>
           </Row>
+
+          <GenreMultiSelect
+            selectedIds={genreIds}
+            onChange={(nextIds) => {
+              setGenreIds(nextIds);
+              if (nextIds.length > 0) setShowGenreValidation(false);
+            }}
+            disabled={submitting}
+            showValidation={showGenreValidation}
+            testIdPrefix="submission-genre"
+          />
 
           <Button type="submit" variant="primary" disabled={submitting}>
             {submitting ? 'Guardando...' : 'Guardar en Mi CineTrack y enviar a revisión'}

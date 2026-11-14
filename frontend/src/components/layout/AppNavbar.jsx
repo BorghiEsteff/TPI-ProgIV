@@ -17,7 +17,7 @@ const AppNavbar = () => {
   };
 
   return (
-    <Navbar bg="dark" variant="dark" expand="lg" className="shadow-sm">
+    <Navbar bg="dark" variant="dark" expand="lg" className="shadow-sm ct-navbar">
       <Container>
         <Navbar.Brand as={Link} to="/" className="fw-bold">
           CineTrack

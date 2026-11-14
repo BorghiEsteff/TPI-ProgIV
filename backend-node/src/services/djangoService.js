@@ -52,12 +52,16 @@ export const verifyTrackingOwnership = async (trackingEntryId, authHeader) => {
  */
 export const fetchOwnedTrackingIds = async (trackingIds, authHeader) => {
   try {
-    const response = await djangoClient.get('/tracking/', {
-      headers: { Authorization: authHeader },
-      params: { page_size: 100 },
-    });
-    const results = Array.isArray(response.data) ? response.data : response.data?.results || [];
-    const ownedSet = new Set(results.map((entry) => Number(entry.id)));
+    if (!Array.isArray(trackingIds) || trackingIds.length === 0) {
+      return { authorized: true, allowedIds: [] };
+    }
+    const response = await djangoClient.post(
+      '/tracking/verify-ownership/',
+      { tracking_ids: trackingIds },
+      { headers: { Authorization: authHeader } },
+    );
+    const ownedIds = Array.isArray(response.data?.owned_ids) ? response.data.owned_ids : [];
+    const ownedSet = new Set(ownedIds.map((id) => Number(id)));
     const allowedIds = trackingIds.filter((id) => ownedSet.has(Number(id)));
     return { authorized: true, allowedIds };
   } catch (error) {
@@ -69,15 +73,29 @@ export const fetchOwnedTrackingIds = async (trackingIds, authHeader) => {
 };
 
 /**
- * Obtiene candidatos del catálogo publicado en Django para recomendaciones IA.
+ * Obtiene candidatos del catálogo publicado en Django para recomendaciones IA (con paginación).
  */
 export const fetchPublishedCatalogCandidates = async () => {
   try {
-    const response = await djangoClient.get('/media/', {
-      params: { page_size: 50 },
-    });
-    const results = Array.isArray(response.data) ? response.data : response.data?.results || [];
-    return { ok: true, candidates: results };
+    const candidates = [];
+    let page = 1;
+    const maxPages = 5;
+
+    while (page <= maxPages) {
+      const response = await djangoClient.get('/media/', {
+        params: { page, page_size: 50 },
+      });
+      const data = response.data;
+      const results = Array.isArray(data) ? data : data?.results || [];
+      candidates.push(...results);
+
+      if (Array.isArray(data) || !data?.next) {
+        break;
+      }
+      page += 1;
+    }
+
+    return { ok: true, candidates };
   } catch (error) {
     return { ok: false, candidates: [], error: error.message };
   }

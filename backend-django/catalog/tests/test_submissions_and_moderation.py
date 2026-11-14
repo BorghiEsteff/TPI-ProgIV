@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
-from catalog.models import MediaItem, MediaSubmission
+from catalog.models import Genre, MediaItem, MediaSubmission
 from tracking.models import UserProgress
 
 User = get_user_model()
@@ -23,6 +23,7 @@ class TestSubmissionsAndModerationFlow:
         self.admin = User.objects.create_user(
             email="admin@cinetrack.local", username="admin", password="StrongPassword123!", role="ADMIN"
         )
+        self.scifi_genre, _ = Genre.objects.get_or_create(name="Ciencia Ficción")
 
     def test_matrix_end_to_end_moderation_and_isolation(self):
         # 1. Usuaria A propone Matrix en HBO
@@ -36,6 +37,7 @@ class TestSubmissionsAndModerationFlow:
                 "poster_url": "https://cdn.example.com/matrix-a.jpg",
                 "watch_platform": "HBO",
                 "release_year": 1999,
+                "genres": [self.scifi_genre.id],
             },
             format="json",
         )
@@ -60,6 +62,7 @@ class TestSubmissionsAndModerationFlow:
                 "poster_url": "https://cdn.example.com/matrix-b.jpg",
                 "watch_platform": "Netflix",
                 "release_year": 1999,
+                "genres": [self.scifi_genre.id],
             },
             format="json",
         )
@@ -153,6 +156,7 @@ class TestSubmissionsAndModerationFlow:
                 "media_type": "SERIE",
                 "poster_url": "https://cdn.example.com/rejected.jpg",
                 "watch_platform": "Otro - TV",
+                "genres": [self.scifi_genre.id],
             },
             format="json",
         )
@@ -191,6 +195,7 @@ class TestSubmissionsAndModerationFlow:
                 "media_type": "PELICULA",
                 "poster_url": "https://cdn.example.com/inception.jpg",
                 "watch_platform": "Netflix",
+                "genres": [self.scifi_genre.id],
             },
             format="json",
         )

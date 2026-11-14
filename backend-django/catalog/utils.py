@@ -163,3 +163,50 @@ def validate_poster_file(uploaded_file) -> None:
     is_webp = len(header) >= 12 and header[:4] == b"RIFF" and header[8:12] == b"WEBP"
     if not (is_jpeg or is_png or is_webp):
         raise ValidationError("El contenido del archivo no corresponde a una imagen JPG, PNG o WEBP válida.")
+
+
+BASE_GENRES = [
+    "Acción",
+    "Drama",
+    "Ciencia Ficción",
+    "Fantasía",
+    "Thriller",
+    "Romance",
+    "Comedia",
+    "Terror",
+    "Aventura",
+    "Animación",
+    "Documental",
+    "Misterio",
+    "Crimen",
+    "Histórico",
+    "Infantil/Familiar",
+    "Musical",
+]
+
+
+def normalize_genre_name(name: str) -> str:
+    """Normaliza un nombre de género para evitar duplicados por mayúsculas o acentos."""
+    return normalize_title(name)
+
+
+def ensure_base_genres(genre_model=None) -> list:
+    """Asegura de forma idempotente la existencia de los 16 géneros base."""
+    if genre_model is None:
+        from catalog.models import Genre
+        genre_model = Genre
+
+    existing_by_norm = {
+        normalize_genre_name(g.name): g
+        for g in genre_model.objects.all()
+    }
+    created_or_existing = []
+    for name in BASE_GENRES:
+        norm = normalize_genre_name(name)
+        if norm in existing_by_norm:
+            created_or_existing.append(existing_by_norm[norm])
+        else:
+            genre = genre_model.objects.create(name=name)
+            existing_by_norm[norm] = genre
+            created_or_existing.append(genre)
+    return created_or_existing

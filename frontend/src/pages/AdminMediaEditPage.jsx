@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Card, Container, Form } from 'react-bootstrap';
 import { Link, useParams } from 'react-router-dom';
 import ErrorMessage from '../components/common/ErrorMessage';
+import GenreMultiSelect from '../components/common/GenreMultiSelect';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import * as catalogService from '../services/catalogService';
 import * as submissionService from '../services/submissionService';
@@ -15,6 +16,7 @@ const AdminMediaEditPage = () => {
     release_year: '',
     country_of_origin: '',
     synopsis: '',
+    genres: [],
     is_active: true,
   });
   const [loading, setLoading] = useState(true);
@@ -34,6 +36,7 @@ const AdminMediaEditPage = () => {
           release_year: data.release_year || '',
           country_of_origin: data.country_of_origin || '',
           synopsis: data.synopsis || '',
+          genres: Array.isArray(data.genres) ? data.genres.map((g) => Number(g.id)) : [],
           is_active: Boolean(data.is_active),
         });
       } catch (err) {
@@ -129,6 +132,14 @@ const AdminMediaEditPage = () => {
                 onChange={(e) => setForm({ ...form, synopsis: e.target.value })}
               />
             </Form.Group>
+            <GenreMultiSelect
+              selectedIds={form.genres}
+              onChange={(nextIds) => setForm((prev) => ({ ...prev, genres: nextIds }))}
+              disabled={saving}
+              label="Categorías / Géneros *"
+              showValidation
+              testIdPrefix="admin-media-genre"
+            />
             <Form.Check
               type="switch"
               id="mediaIsActive"

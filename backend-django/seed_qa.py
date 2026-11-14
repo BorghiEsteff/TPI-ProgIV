@@ -12,6 +12,7 @@ django.setup()
 from datetime import date
 from django.contrib.auth import get_user_model
 from catalog.models import Genre, MediaItem, Season, Episode
+from catalog.utils import ensure_base_genres
 
 User = get_user_model()
 
@@ -32,6 +33,7 @@ for email, username, password, role in qa_accounts:
     user.set_password(password)
     user.save()
 
+ensure_base_genres(Genre)
 scifi, _ = Genre.objects.get_or_create(name="Ciencia Ficción")
 romance, _ = Genre.objects.get_or_create(name="Romance")
 drama, _ = Genre.objects.get_or_create(name="Drama")

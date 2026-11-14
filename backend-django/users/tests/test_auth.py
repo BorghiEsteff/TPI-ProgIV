@@ -31,7 +31,7 @@ class TestAuthAndJWTSecurity:
         )
 
         # Crear item de catalogo para test de tracking
-        self.genre = Genre.objects.create(name="Terror")
+        self.genre, _ = Genre.objects.get_or_create(name="Terror")
         self.media = MediaItem.objects.create(
             title="Alien",
             media_type=MediaItem.MediaType.PELICULA,

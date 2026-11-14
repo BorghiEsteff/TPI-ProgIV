@@ -59,6 +59,8 @@ htmlcov/
 # ==========================================
 .specify/
 .antigravity/
+.agent/
+.agents/
 *.prompt.md
 *.agent.md
 .cursor/

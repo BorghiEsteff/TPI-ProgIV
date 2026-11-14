@@ -105,6 +105,7 @@ class MediaSubmission(models.Model):
     submitted_platform = models.CharField(max_length=100, verbose_name="Plataforma Declarada")
     release_year = models.PositiveIntegerField(null=True, blank=True, verbose_name="Año de Estreno")
     country_of_origin = models.CharField(max_length=100, blank=True, default="", verbose_name="País de Origen")
+    genres = models.ManyToManyField(Genre, blank=True, related_name="submissions", verbose_name="Géneros Propuestos")
     tags = models.JSONField(default=list, blank=True, verbose_name="Etiquetas")
     status = models.CharField(
         max_length=15,

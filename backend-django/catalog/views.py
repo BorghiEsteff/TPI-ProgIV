@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -19,7 +20,29 @@ from .serializers import (
     EpisodeSerializer,
 )
 from .filters import MediaItemFilter
-from .utils import find_duplicate_candidates, validate_safe_poster_url
+from .utils import find_duplicate_candidates, normalize_genre_name, validate_safe_poster_url
+
+
+def _resolve_validated_genres(raw_genre_ids) -> list[Genre]:
+    if not isinstance(raw_genre_ids, list) or len(raw_genre_ids) == 0:
+        raise DRFValidationError({"genres": "Debes seleccionar entre 1 y 5 géneros válidos."})
+    parsed_ids = []
+    seen = set()
+    for raw_id in raw_genre_ids:
+        try:
+            gid = int(raw_id)
+        except (TypeError, ValueError):
+            raise DRFValidationError({"genres": f"ID de género inválido: {raw_id}."})
+        if gid not in seen:
+            seen.add(gid)
+            parsed_ids.append(gid)
+    if len(parsed_ids) > 5:
+        raise DRFValidationError({"genres": "Puedes asignar como máximo 5 géneros."})
+    genres_by_id = {g.id: g for g in Genre.objects.filter(id__in=parsed_ids)}
+    if len(genres_by_id) != len(parsed_ids):
+        missing = [gid for gid in parsed_ids if gid not in genres_by_id]
+        raise DRFValidationError({"genres": f"Los siguientes géneros no existen: {missing}."})
+    return [genres_by_id[gid] for gid in parsed_ids]
 
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -29,6 +52,29 @@ class GenreViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["name"]
     ordering_fields = ["name"]
+
+    def _validate_unique_normalized_name(self, name: str, exclude_id: int | None = None) -> None:
+        norm = normalize_genre_name(name)
+        if not norm:
+            raise DRFValidationError({"name": "El nombre del género no puede estar vacío."})
+        qs = Genre.objects.all()
+        if exclude_id is not None:
+            qs = qs.exclude(pk=exclude_id)
+        for existing in qs.only("id", "name"):
+            if normalize_genre_name(existing.name) == norm:
+                raise DRFValidationError({"name": f"Ya existe un género equivalente: '{existing.name}'."})
+
+    def perform_create(self, serializer):
+        self._validate_unique_normalized_name(serializer.validated_data.get("name", ""))
+        serializer.save()
+
+    def perform_update(self, serializer):
+        if "name" in serializer.validated_data:
+            self._validate_unique_normalized_name(
+                serializer.validated_data.get("name", ""),
+                exclude_id=serializer.instance.pk,
+            )
+        serializer.save()
 
 
 class MediaItemViewSet(viewsets.ModelViewSet):
@@ -88,12 +134,16 @@ class MediaSubmissionViewSet(viewsets.GenericViewSet):
         return MediaSubmission.objects.filter(submitted_by=self.request.user)
 
     def list(self, request):
-        serializer = MediaSubmissionMineSerializer(self.get_queryset(), many=True)
+        serializer = MediaSubmissionMineSerializer(
+            self.get_queryset(), many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"], url_path="mine")
     def mine(self, request):
-        serializer = MediaSubmissionMineSerializer(self.get_queryset(), many=True)
+        serializer = MediaSubmissionMineSerializer(
+            self.get_queryset(), many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     def create(self, request):
@@ -207,8 +257,32 @@ class AdminSubmissionViewSet(viewsets.GenericViewSet):
 
             title = " ".join((request.data.get("title") or submission.title).split())
             media_type = request.data.get("media_type") or submission.media_type
+
+            confirm_new = bool(request.data.get("confirm_new", False))
+            if not confirm_new:
+                dup_candidates = [
+                    c for c in find_duplicate_candidates(
+                        title=title,
+                        media_type=media_type,
+                        release_year=request.data.get("release_year", submission.release_year),
+                        exclude_submission_id=submission.id,
+                    )
+                    if c["source"] == "MEDIA_ITEM" and c["similarity"] >= 0.90
+                ]
+                if dup_candidates:
+                    return Response(
+                        {
+                            "code": "POSSIBLE_DUPLICATE_EXISTS",
+                            "message": "Ya existe una obra muy similar en el catálogo canónico. Confirma la creación con confirm_new=true o vincula con merge.",
+                            "candidates": dup_candidates,
+                        },
+                        status=status.HTTP_409_CONFLICT,
+                    )
+
             poster_image = request.data.get("poster_image") or submission.effective_poster_url
-            if poster_image and poster_image.startswith(("http://", "https://")):
+            if poster_image and poster_image.startswith("/"):
+                poster_image = request.build_absolute_uri(poster_image)
+            elif poster_image and poster_image.startswith(("http://", "https://")):
                 validate_safe_poster_url(poster_image)
 
             release_year = request.data.get("release_year", submission.release_year)
@@ -216,6 +290,19 @@ class AdminSubmissionViewSet(viewsets.GenericViewSet):
             synopsis = request.data.get("synopsis", "")
             producer = request.data.get("producer", "")
             tags = request.data.get("tags", submission.tags)
+
+            if "genres" in request.data:
+                resolved_genres = _resolve_validated_genres(request.data.get("genres"))
+            else:
+                resolved_genres = list(submission.genres.all())
+                if not resolved_genres:
+                    return Response(
+                        {
+                            "code": "MISSING_GENRES",
+                            "message": "La obra debe tener entre 1 y 5 géneros válidos para publicarse.",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
             media_item = MediaItem.objects.create(
                 title=title,
@@ -229,9 +316,7 @@ class AdminSubmissionViewSet(viewsets.GenericViewSet):
                 is_active=True,
             )
 
-            genre_ids = request.data.get("genres")
-            if isinstance(genre_ids, list) and genre_ids:
-                media_item.genres.set(Genre.objects.filter(id__in=genre_ids))
+            media_item.genres.set(resolved_genres)
 
             submission.status = MediaSubmission.Status.PUBLISHED
             submission.resolved_media = media_item
@@ -275,6 +360,10 @@ class AdminSubmissionViewSet(viewsets.GenericViewSet):
                 )
 
             target_media = get_object_or_404(MediaItem, pk=media_item_id, is_active=True)
+
+            if "genres" in request.data:
+                resolved_genres = _resolve_validated_genres(request.data.get("genres"))
+                target_media.genres.set(resolved_genres)
 
             submission.status = MediaSubmission.Status.MERGED
             submission.resolved_media = target_media

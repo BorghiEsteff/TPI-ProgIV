@@ -57,7 +57,6 @@ const MediaFilterBar = ({
             name="genre"
             value={filters.genre}
             onChange={handleInputChange}
-            disabled={queryMode === 'GRAPHQL'}
           >
             <option value="">Todos los generos</option>
             {genres.map((g) => (

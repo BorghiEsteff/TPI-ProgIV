@@ -41,28 +41,41 @@ const getCurrentEpisodeDuration = (progress) => {
 const MyTrackingPage = () => {
   const navigate = useNavigate();
   const [records, setRecords] = useState([]);
+  const [reconciliations, setReconciliations] = useState([]);
   const [notesByTrackingId, setNotesByTrackingId] = useState({});
   const [activeStatusFilter, setActiveStatusFilter] = useState('TODOS');
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 20;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [savingId, setSavingId] = useState(null);
   const [savingNoteId, setSavingNoteId] = useState(null);
+  const [reconcilingId, setReconcilingId] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const loadTracking = useCallback(async () => {
+  const loadTracking = useCallback(async (targetPage = page) => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await trackingService.getMyTracking();
+      const [{ data }, recList] = await Promise.all([
+        trackingService.getMyTracking({ page: targetPage, page_size: pageSize }),
+        trackingService.getReconciliations().catch(() => []),
+      ]);
       const list = Array.isArray(data) ? data : data?.results || [];
       setRecords(list);
+      setTotalCount(Array.isArray(data) ? list.length : data?.count ?? list.length);
+      setReconciliations(recList);
 
-      const ids = list.map((item) => item.id).filter(Boolean);
+      const ids = [
+        ...list.map((item) => item.id),
+        ...recList.map((item) => item.id),
+      ].filter(Boolean);
       if (ids.length > 0) {
         try {
           const notes = await personalNoteService.getNotesBatch(ids);
@@ -80,11 +93,34 @@ const MyTrackingPage = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page]);
 
   useEffect(() => {
-    loadTracking();
-  }, [loadTracking]);
+    loadTracking(page);
+  }, [loadTracking, page]);
+
+  const handleReconcile = async (conflictId, resolution) => {
+    setReconcilingId(conflictId);
+    setFeedback(null);
+    try {
+      await trackingService.reconcileTrackingEntry(conflictId, resolution);
+      setFeedback({
+        variant: 'success',
+        text:
+          resolution === 'apply_archived_progress'
+            ? 'Se aplicó el avance de la propuesta al registro canónico y se resolvió el conflicto.'
+            : 'Se conservó tu entrada canónica y se resolvió el conflicto.',
+      });
+      await loadTracking(page);
+    } catch (err) {
+      setFeedback({
+        variant: 'danger',
+        text: err?.message || 'No se pudo resolver la reconciliación.',
+      });
+    } finally {
+      setReconcilingId(null);
+    }
+  };
 
   const handleUpdateProgress = async (id, payload) => {
     setSavingId(id);
@@ -210,6 +246,61 @@ const MyTrackingPage = () => {
         </Alert>
       )}
 
+      {!loading && reconciliations.length > 0 && (
+        <Alert variant="warning" className="my-3" data-testid="reconciliation-panel">
+          <div className="fw-semibold mb-2">
+            Reconciliación pendiente ({reconciliations.length})
+          </div>
+          <p className="small mb-2">
+            Una propuesta tuya se vinculó con una obra que ya tenías en tu diario. Revisa tus datos privados y elige cómo resolverlo sin perder tus notas:
+          </p>
+          <div className="d-flex flex-column gap-2">
+            {reconciliations.map((conflict) => {
+              const conflictNote = notesByTrackingId[conflict.id];
+              const isRecBusy = reconcilingId === conflict.id;
+              return (
+                <Card key={conflict.id} className="border-warning bg-white">
+                  <Card.Body className="py-2 px-3">
+                    <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                      <div className="small">
+                        <strong>{conflict.display_title}</strong> • Plataforma propuesta:{' '}
+                        <Badge bg="secondary">{conflict.watch_platform}</Badge> • Estado:{' '}
+                        <Badge bg="dark">{conflict.status}</Badge>
+                        {conflictNote?.comment && (
+                          <div className="text-muted mt-1">
+                            Nota privada en propuesta: “{conflictNote.comment}”
+                          </div>
+                        )}
+                      </div>
+                      <div className="d-flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline-dark"
+                          disabled={isRecBusy}
+                          onClick={() => handleReconcile(conflict.id, 'keep_canonical')}
+                          data-testid={`reconcile-keep-${conflict.id}`}
+                        >
+                          Conservar entrada actual
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          disabled={isRecBusy}
+                          onClick={() => handleReconcile(conflict.id, 'apply_archived_progress')}
+                          data-testid={`reconcile-apply-${conflict.id}`}
+                        >
+                          Aplicar avance de propuesta
+                        </Button>
+                      </div>
+                    </div>
+                  </Card.Body>
+                </Card>
+              );
+            })}
+          </div>
+        </Alert>
+      )}
+
       {!loading && !error && records.length > 0 && (
         <Row className="g-2 align-items-center mb-4">
           <Col lg={8} className="overflow-auto">
@@ -268,26 +359,31 @@ const MyTrackingPage = () => {
       )}
 
       {!loading && !error && filteredRecords.length > 0 && (
-        <div className="d-flex flex-column gap-3">
-          {filteredRecords.map((item) => {
-            const title = item.display_title || item.media_item_detail?.title || `Obra #${item.id}`;
-            const poster = item.display_poster_url || item.media_item_detail?.poster_image || '';
-            const mediaType = item.display_media_type || item.media_item_detail?.media_type || 'PELICULA';
-            const isSerie = mediaType === 'SERIE';
-            const durationMinutes = getCurrentEpisodeDuration(item);
-            const note = notesByTrackingId[item.id] || { rating: null, comment: '' };
+        <>
+          <div className="d-flex flex-column gap-3">
+            {filteredRecords.map((item) => {
+              const title = item.display_title || item.media_item_detail?.title || `Obra #${item.id}`;
+              const poster = item.display_poster_url || item.media_item_detail?.poster_image || '';
+              const mediaType = item.display_media_type || item.media_item_detail?.media_type || 'PELICULA';
+              const displayGenres =
+                Array.isArray(item.display_genres) && item.display_genres.length > 0
+                  ? item.display_genres
+                  : item.media_item_detail?.genres || [];
+              const isSerie = mediaType === 'SERIE';
+              const durationMinutes = getCurrentEpisodeDuration(item);
+              const note = notesByTrackingId[item.id] || { rating: null, comment: '' };
 
-            return (
-              <Card key={item.id} className="shadow-sm">
-                <Card.Body>
-                  <Row className="g-3">
-                    {poster && (
-                      <Col xs={4} sm={3} md={2}>
-                        <img
-                          src={poster}
-                          alt={`Portada de ${title}`}
-                          className="img-fluid rounded w-100"
-                          style={{ maxHeight: 170, objectFit: 'cover' }}
+              return (
+                <Card key={item.id} className="shadow-sm">
+                  <Card.Body>
+                    <Row className="g-3">
+                      {poster && (
+                        <Col xs={4} sm={3} md={2}>
+                          <img
+                            src={poster}
+                            alt={`Portada de ${title}`}
+                            className="img-fluid rounded w-100"
+                            style={{ maxHeight: 170, objectFit: 'cover' }}
                         />
                       </Col>
                     )}
@@ -314,6 +410,16 @@ const MyTrackingPage = () => {
                               <Badge bg="danger">No publicada</Badge>
                             )}
                           </div>
+
+                          {displayGenres.length > 0 && (
+                            <div className="d-flex flex-wrap gap-1 mt-1">
+                              {displayGenres.map((g) => (
+                                <Badge key={g.id} bg="light" text="dark" className="border">
+                                  {g.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
 
                           {item.submission_status === 'REJECTED' && item.submission_rejection_reason && (
                             <div className="small text-danger mt-1">
@@ -425,6 +531,37 @@ const MyTrackingPage = () => {
             );
           })}
         </div>
+        {totalCount > pageSize && (
+          <div
+            className="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4 pt-3 border-top"
+            data-testid="tracking-pagination"
+          >
+            <span className="text-muted small">
+              Página {page} de {Math.max(1, Math.ceil(totalCount / pageSize))} ({totalCount} registros)
+            </span>
+            <div className="d-flex gap-2">
+              <Button
+                size="sm"
+                variant="outline-secondary"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                data-testid="tracking-prev-page"
+              >
+                Anterior
+              </Button>
+              <Button
+                size="sm"
+                variant="outline-secondary"
+                disabled={page >= Math.ceil(totalCount / pageSize)}
+                onClick={() => setPage((p) => p + 1)}
+                data-testid="tracking-next-page"
+              >
+                Siguiente
+              </Button>
+            </div>
+          </div>
+        )}
+        </>
       )}
 
       <ConfirmModal

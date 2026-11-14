@@ -1,3 +1,5 @@
+from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import viewsets, filters, permissions, status
@@ -81,3 +83,114 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         entry.needs_reconciliation = False
         entry.save()
         return Response(self.get_serializer(entry).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["post"], url_path="verify-ownership")
+    def verify_ownership(self, request):
+        """Verifica en un solo llamado qué IDs de tracking pertenecen al usuario autenticado."""
+        raw_ids = request.data.get("tracking_ids")
+        if not isinstance(raw_ids, list):
+            return Response(
+                {"code": "INVALID_TRACKING_IDS", "message": "tracking_ids debe ser una lista de enteros."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        parsed_ids = []
+        for raw_id in raw_ids:
+            try:
+                parsed_ids.append(int(raw_id))
+            except (TypeError, ValueError):
+                continue
+        if not parsed_ids:
+            return Response({"owned_ids": []}, status=status.HTTP_200_OK)
+
+        owned_ids = list(
+            UserProgress.objects.filter(
+                user=request.user,
+                id__in=parsed_ids,
+            )
+            .filter(Q(deleted_at__isnull=True) | Q(needs_reconciliation=True))
+            .values_list("id", flat=True)
+        )
+        return Response({"owned_ids": owned_ids}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="reconciliations")
+    def reconciliations(self, request):
+        """Lista entradas en conflicto por merge pendientes de reconciliación privada del usuario."""
+        conflicts = (
+            UserProgress.objects.filter(
+                user=request.user,
+                needs_reconciliation=True,
+            )
+            .select_related("media_item", "source_submission", "source_submission__resolved_media")
+            .order_by("-updated_at")
+        )
+        items = []
+        for entry in conflicts:
+            serialized = self.get_serializer(entry).data
+            target_media = (
+                entry.source_submission.resolved_media
+                if entry.source_submission and entry.source_submission.resolved_media_id
+                else entry.media_item
+            )
+            canonical_data = None
+            if target_media:
+                canonical = UserProgress.objects.filter(
+                    user=request.user,
+                    media_item=target_media,
+                    deleted_at__isnull=True,
+                ).select_related("media_item", "source_submission").first()
+                if canonical:
+                    canonical_data = self.get_serializer(canonical).data
+            serialized["canonical_entry"] = canonical_data
+            items.append(serialized)
+        return Response({"results": items, "count": len(items)}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="reconcile")
+    def reconcile(self, request, pk=None):
+        """Resuelve una colisión de merge de forma explícita sin perder datos ni notas."""
+        entry = get_object_or_404(
+            UserProgress.objects.select_related("source_submission", "source_submission__resolved_media"),
+            pk=pk,
+            user=request.user,
+            needs_reconciliation=True,
+        )
+        resolution = request.data.get("resolution", "keep_canonical")
+        if resolution not in {"keep_canonical", "apply_archived_progress"}:
+            return Response(
+                {"code": "INVALID_RESOLUTION", "message": "Resolución inválida."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            target_media = (
+                entry.source_submission.resolved_media
+                if entry.source_submission and entry.source_submission.resolved_media_id
+                else entry.media_item
+            )
+            canonical = None
+            if target_media:
+                canonical = UserProgress.objects.filter(
+                    user=request.user,
+                    media_item=target_media,
+                    deleted_at__isnull=True,
+                ).first()
+
+            if resolution == "apply_archived_progress" and canonical is not None:
+                canonical.watch_platform = entry.watch_platform or canonical.watch_platform
+                canonical.status = entry.status
+                canonical.current_season_number = entry.current_season_number
+                canonical.current_episode_number = entry.current_episode_number
+                canonical.current_seconds = entry.current_seconds
+                canonical.is_favorite = canonical.is_favorite or entry.is_favorite
+                canonical.save()
+
+            entry.needs_reconciliation = False
+            entry.save(update_fields=["needs_reconciliation", "updated_at"])
+
+        return Response(
+            {
+                "reconciled_id": entry.id,
+                "resolution": resolution,
+                "canonical_entry": self.get_serializer(canonical).data if canonical else None,
+            },
+            status=status.HTTP_200_OK,
+        )

@@ -1,8 +1,8 @@
 # CineTrack — Estado de Implementación (Reenfoque P0–P6)
 
-**Fecha de actualización:** 2026-11-13  
-**Rama:** `feature/frontend-cinetrack` (basada en `e8f5aba` / `main` `cddc774`)  
-**Respaldo local BD SQLite:** `backend-django/backups/db.sqlite3.baseline.bak` (4 usuarios, 3 MediaItem, 5 Genre, 2 Season, 6 Episode, 1 UserProgress — datos preservados tras migraciones)
+**Fecha de actualización:** 2026-11-14  
+**Rama:** `feature/frontend-cinetrack` (basada en `7874503`)  
+**Respaldo local BD SQLite:** `backend-django/backups/db.sqlite3.baseline.bak` (base de desarrollo `db.sqlite3` intacta)
 
 ---
 
@@ -10,11 +10,13 @@
 
 | Servicio | Comando | Resultado Real | Observaciones |
 |---|---|---|---|
-| `backend-django` | `manage.py makemigrations --check --dry-run` + `pytest -q` (SQLite) | **23 passed**, sin migraciones pendientes | PostgreSQL/Docker Desktop apagado localmente |
-| `backend-node` | `npm test` (Jest + Supertest + mocks) | **6 suites, 21 passed** | MongoDB real apagado; validado con mocks |
-| `service-ai` | `pytest -q` (FastAPI TestClient + Groq mock) | **4 passed** | Fallback determinista y filtrado anti-alucinación verificados |
-| `frontend` | `npm test -- --run` + `npm run build` | **5 archivos, 15 passed**; build Vite OK (`433 modules`) | Build de producción limpio |
-| `docker-compose.yml` | `docker compose config --quiet` | **OK** | Daemon Docker Desktop apagado; `up --build` pendiente en entorno con Docker activo |
+| `backend-django` | `pytest -q` (SQLite QA `db.qa.sqlite3`) | **28 passed** | Incluye `GEN-01..09`, paginación 25+, `verify-ownership` y reconciliación |
+| `backend-node` | `npm test` (Jest + Supertest + mocks) | **6 suites, 21 passed** | MongoDB QA `cinetrack_qa` validado en E2E real |
+| `service-ai` | `pytest -q` (FastAPI TestClient + Groq mock) | **5 passed** | Fallback determinista y filtrado anti-alucinación verificados |
+| `frontend` | `npm test -- --run` + `npm run build` | **5 archivos, 15 passed**; build Vite OK (`434 modules`) | Build de producción limpio |
+| `Playwright E2E` | `npx playwright test --project=chromium-desktop` y `--project=chromium-mobile` | **18/18 desktop** + **18/18 mobile** | Incluye `GEN-E2E-01..09`, `VIS-01..16` y caso Matrix |
+| `Impeccable` | `impeccable.cmd detect --json http://localhost:5173/` | **0 hallazgos (`[]`)** | `PRODUCT.md` y `DESIGN.md` documentados |
+| `PostgreSQL / Groq` | — | **BLOCKED / NOT_RUN** | Sin Docker/PG local ni `GROQ_API_KEY` configurados |
 
 ---
 
