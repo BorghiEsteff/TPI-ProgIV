@@ -1,5 +1,5 @@
 import { Badge, Button, Container, Nav, Navbar } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 const ROLE_VARIANT = {
@@ -17,33 +17,33 @@ const AppNavbar = () => {
   };
 
   return (
-    <Navbar bg="dark" variant="dark" expand="lg" className="shadow-sm ct-navbar">
+    <Navbar variant="dark" expand="lg" className="shadow-sm ct-navbar">
       <Container>
-        <Navbar.Brand as={Link} to="/" className="fw-bold">
-          CineTrack
+        <Navbar.Brand as={Link} to="/" className="fw-bold d-flex align-items-center gap-2">
+          <span className="ct-brand-mark">CineTrack</span>
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="cinetrack-navbar" />
         <Navbar.Collapse id="cinetrack-navbar">
-          <Nav className="me-auto">
-            <Nav.Link as={Link} to="/">
+          <Nav className="me-auto gap-lg-1">
+            <Nav.Link as={NavLink} to="/" end>
               Catálogo
             </Nav.Link>
             {isAuthenticated && (
               <>
-                <Nav.Link as={Link} to="/my-tracking">
+                <Nav.Link as={NavLink} to="/my-tracking">
                   Mi CineTrack
                 </Nav.Link>
-                <Nav.Link as={Link} to="/new-entry">
+                <Nav.Link as={NavLink} to="/new-entry">
                   Agregar Obra
                 </Nav.Link>
-                <Nav.Link as={Link} to="/my-submissions">
+                <Nav.Link as={NavLink} to="/my-submissions">
                   Mis Propuestas
                 </Nav.Link>
-                <Nav.Link as={Link} to="/recommendations">
+                <Nav.Link as={NavLink} to="/recommendations">
                   Recomendaciones IA
                 </Nav.Link>
                 {role === 'ADMIN' && (
-                  <Nav.Link as={Link} to="/admin/submissions">
+                  <Nav.Link as={NavLink} to="/admin/submissions">
                     Moderación
                   </Nav.Link>
                 )}

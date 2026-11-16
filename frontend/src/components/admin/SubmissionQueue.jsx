@@ -64,7 +64,7 @@ const SubmissionQueue = ({
                         </Badge>
                         {Array.isArray(sub.genres) &&
                           sub.genres.map((g) => (
-                            <Badge key={g.id} bg="light" text="dark" className="border">
+                            <Badge key={g.id} bg="" className="ct-genre-badge">
                               {g.name}
                             </Badge>
                           ))}

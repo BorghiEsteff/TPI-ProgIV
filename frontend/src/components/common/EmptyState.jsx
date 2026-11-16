@@ -7,9 +7,9 @@ const EmptyState = ({
   onAction,
 }) => {
   return (
-    <Card className="text-center border-secondary-subtle bg-light my-4">
+    <Card className="text-center my-4">
       <Card.Body className="py-5">
-        <Card.Title as="h5" className="text-dark mb-2">
+        <Card.Title as="h2" className="h5 mb-2">
           {title}
         </Card.Title>
         <Card.Text className="text-muted mb-3">{description}</Card.Text>
@@ -24,4 +24,3 @@ const EmptyState = ({
 };
 
 export default EmptyState;
-

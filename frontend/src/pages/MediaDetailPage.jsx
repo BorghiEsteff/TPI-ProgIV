@@ -118,15 +118,19 @@ const MediaDetailPage = () => {
           <Row className="g-4">
             <Col md={4} lg={3}>
               {media.poster_image ? (
-                <img
-                  src={media.poster_image}
-                  alt={`Portada de ${media.title}`}
-                  className="img-fluid rounded shadow-sm w-100"
-                  style={{ maxHeight: 380, objectFit: 'cover' }}
-                />
+                <div className="ct-poster-frame rounded shadow-sm">
+                  <img
+                    src={media.poster_image}
+                    alt={`Portada de ${media.title}`}
+                    className="ct-poster-img"
+                  />
+                </div>
               ) : (
-                <div className="bg-secondary text-white rounded d-flex align-items-center justify-content-center" style={{ height: 320 }}>
-                  Sin portada
+                <div className="ct-poster-fallback rounded">
+                  <span className="small text-uppercase fw-semibold">
+                    {media.media_type === 'SERIE' ? 'Serie' : 'Película'}
+                  </span>
+                  <span className="small mt-1 opacity-75">{media.title}</span>
                 </div>
               )}
             </Col>
@@ -134,10 +138,12 @@ const MediaDetailPage = () => {
             <Col md={8} lg={9}>
               <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                 <h1 className="h2 mb-0">{media.title}</h1>
-                <Badge bg="dark">{media.media_type === 'SERIE' ? 'Serie' : 'Película'}</Badge>
+                <Badge bg="" className={media.media_type === 'SERIE' ? 'ct-badge-serie' : 'ct-badge-pelicula'}>
+                  {media.media_type === 'SERIE' ? 'Serie' : 'Película'}
+                </Badge>
               </div>
 
-              <div className="text-muted small mb-3">
+              <div className="text-muted small mb-3 tabular-nums">
                 {(media.release_year || media.release_date) && (
                   <span className="me-3">Año: {media.release_year || media.release_date}</span>
                 )}
@@ -150,7 +156,7 @@ const MediaDetailPage = () => {
               {Array.isArray(media.genres) && media.genres.length > 0 && (
                 <div className="d-flex gap-2 flex-wrap mb-3">
                   {media.genres.map((g) => (
-                    <Badge key={g.id || g.name} bg="light" text="dark" className="border">
+                    <Badge key={g.id || g.name} bg="" className="ct-genre-badge">
                       {g.name || g}
                     </Badge>
                   ))}
@@ -177,7 +183,7 @@ const MediaDetailPage = () => {
                 )}
 
                 {role === 'ADMIN' && (
-                  <Button as={Link} to={`/admin/media/${media.id}`} variant="outline-dark">
+                  <Button as={Link} to={`/admin/media/${media.id}`} variant="outline-secondary">
                     Editar ficha pública
                   </Button>
                 )}

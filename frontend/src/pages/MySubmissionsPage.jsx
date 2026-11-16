@@ -132,7 +132,7 @@ const MySubmissionsPage = () => {
                       {Array.isArray(sub.genres) && sub.genres.length > 0 && (
                         <div className="d-flex flex-wrap gap-1 mb-2">
                           {sub.genres.map((g) => (
-                            <Badge key={g.id} bg="light" text="dark" className="border">
+                            <Badge key={g.id} bg="" className="ct-genre-badge">
                               {g.name}
                             </Badge>
                           ))}

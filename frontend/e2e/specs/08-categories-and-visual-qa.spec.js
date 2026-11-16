@@ -76,8 +76,8 @@ test.describe('Categorías, paginación, reconciliación y QA visual Impeccable 
     await adminCard.locator('[data-testid^="publish-sub-"]').click();
     await expect(pageAdmin.getByText(/publicada como obra #/i)).toBeVisible();
 
-    // GEN-E2E-09: Filtro por género en modo GraphQL en /
-    await pageUser.goto('/');
+    // GEN-E2E-09: Filtro por género en modo GraphQL en /?debug=1
+    await pageUser.goto('/?debug=1');
     await pageUser.locator('select').nth(2).selectOption('GRAPHQL');
     const genreSelect = pageUser.locator('select[name="genre"]');
     await expect(genreSelect).toBeEnabled();

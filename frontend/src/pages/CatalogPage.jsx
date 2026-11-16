@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Badge, Button, Container } from 'react-bootstrap';
+import { useSearchParams } from 'react-router-dom';
 import MediaFilterBar from '../components/catalog/MediaFilterBar';
 import MediaGrid from '../components/catalog/MediaGrid';
 import DegradedBanner from '../components/common/DegradedBanner';
@@ -71,6 +72,8 @@ const INITIAL_FILTERS = {
 
 const CatalogPage = () => {
   const { isAuthenticated } = useAuth();
+  const [searchParams] = useSearchParams();
+  const showDebugMode = searchParams.get('debug') === '1';
 
   const [items, setItems] = useState([]);
   const [genres, setGenres] = useState([]);
@@ -221,17 +224,21 @@ const CatalogPage = () => {
 
   return (
     <Container className="py-4">
-      <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div>
-          <h1 className="h3 mb-1">Catalogo Multimedia CineTrack</h1>
-          <p className="text-muted small mb-0">
-            Explore peliculas y series almacenadas en PostgreSQL (Django).
-          </p>
+      <header className="ct-catalog-header">
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <h1 className="ct-catalog-title mb-1">Catálogo CineTrack</h1>
+            <p className="ct-catalog-subtitle">
+              Explorá nuestro catálogo de películas y series, llevá el registro de tu progreso y descubrí nuevas historias.
+            </p>
+          </div>
+          {showDebugMode && (
+            <Badge bg="" className="ct-genre-badge px-3 py-2">
+              Modo: {queryMode}
+            </Badge>
+          )}
         </div>
-        <Badge bg="dark" className="px-3 py-2">
-          Origen activo: {queryMode === 'GRAPHQL' ? 'GraphQL (/graphql/)' : 'REST (/api/v1/media/)'}
-        </Badge>
-      </div>
+      </header>
 
       <DegradedBanner show={isDegraded} mode="catalog" />
 
@@ -250,6 +257,7 @@ const CatalogPage = () => {
         filters={filters}
         genres={genres}
         queryMode={queryMode}
+        showQueryMode={showDebugMode}
         onFilterChange={setFilters}
         onQueryModeChange={setQueryMode}
         onSubmit={handleSearchSubmit}

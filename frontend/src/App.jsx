@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import './App.css';
 import AppNavbar from './components/layout/AppNavbar';
 import Footer from './components/layout/Footer';
 import ProtectedRoute from './components/layout/ProtectedRoute';
@@ -19,7 +20,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div className="d-flex flex-column min-vh-100 bg-light">
+        <div className="d-flex flex-column min-vh-100 ct-app-shell">
           <AppNavbar />
           <main className="flex-grow-1">
             <Routes>

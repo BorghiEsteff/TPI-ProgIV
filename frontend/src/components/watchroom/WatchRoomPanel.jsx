@@ -32,7 +32,7 @@ const WatchRoomPanel = ({
               )}
             </div>
             <p className="text-muted small mb-0 mt-1">
-              Sala sincronizada mediante Socket.IO (Node.js :5000) con persistencia de progreso en PostgreSQL (Django :8000).
+              Sala sincronizada en tiempo real. Guardá tu progreso en Mi CineTrack cuando quieras.
             </p>
           </div>
 

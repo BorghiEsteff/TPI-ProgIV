@@ -4,6 +4,7 @@ const MediaFilterBar = ({
   filters,
   genres = [],
   queryMode = 'REST',
+  showQueryMode = false,
   onFilterChange,
   onQueryModeChange,
   onSubmit,
@@ -20,9 +21,9 @@ const MediaFilterBar = ({
   };
 
   return (
-    <Form onSubmit={handleFormSubmit} className="bg-white p-3 rounded shadow-sm border mb-4">
+    <Form onSubmit={handleFormSubmit} className="ct-filter-bar p-3 rounded-3 mb-4">
       <Row className="g-3 align-items-end">
-        <Col md={4}>
+        <Col md={showQueryMode ? 4 : 5}>
           <Form.Label className="small fw-semibold">Buscar obra</Form.Label>
           <InputGroup>
             <Form.Control
@@ -38,7 +39,7 @@ const MediaFilterBar = ({
           </InputGroup>
         </Col>
 
-        <Col md={2}>
+        <Col md={showQueryMode ? 2 : 3}>
           <Form.Label className="small fw-semibold">Tipo</Form.Label>
           <Form.Select
             name="media_type"
@@ -46,19 +47,19 @@ const MediaFilterBar = ({
             onChange={handleInputChange}
           >
             <option value="">Todos</option>
-            <option value="PELICULA">Peliculas</option>
+            <option value="PELICULA">Películas</option>
             <option value="SERIE">Series</option>
           </Form.Select>
         </Col>
 
         <Col md={3}>
-          <Form.Label className="small fw-semibold">Genero</Form.Label>
+          <Form.Label className="small fw-semibold">Género</Form.Label>
           <Form.Select
             name="genre"
             value={filters.genre}
             onChange={handleInputChange}
           >
-            <option value="">Todos los generos</option>
+            <option value="">Todos los géneros</option>
             {genres.map((g) => (
               <option key={g.id} value={g.id}>
                 {g.name}
@@ -67,21 +68,29 @@ const MediaFilterBar = ({
           </Form.Select>
         </Col>
 
-        <Col md={3}>
-          <Form.Label className="small fw-semibold">Modo de consulta Django</Form.Label>
-          <div className="d-flex gap-2">
-            <Form.Select
-              value={queryMode}
-              onChange={(e) => onQueryModeChange(e.target.value)}
-            >
-              <option value="REST">REST API (/api/v1/media/)</option>
-              <option value="GRAPHQL">GraphQL (/graphql/)</option>
-            </Form.Select>
+        {showQueryMode ? (
+          <Col md={3}>
+            <Form.Label className="small fw-semibold">Modo de consulta</Form.Label>
+            <div className="d-flex gap-2">
+              <Form.Select
+                value={queryMode}
+                onChange={(e) => onQueryModeChange(e.target.value)}
+              >
+                <option value="REST">REST</option>
+                <option value="GRAPHQL">GraphQL</option>
+              </Form.Select>
+              <Button type="button" variant="outline-secondary" onClick={onReset}>
+                Limpiar
+              </Button>
+            </div>
+          </Col>
+        ) : (
+          <Col md={1} className="d-grid">
             <Button type="button" variant="outline-secondary" onClick={onReset}>
               Limpiar
             </Button>
-          </div>
-        </Col>
+          </Col>
+        )}
       </Row>
     </Form>
   );

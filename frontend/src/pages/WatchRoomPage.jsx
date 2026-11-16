@@ -92,7 +92,7 @@ const WatchRoomPage = () => {
 
       setFeedback({
         variant: 'success',
-        text: `Posicion ${formatSecondsToHHMMSS(currentSeconds)} guardada en Mi Progreso (PostgreSQL).`,
+        text: `Posición ${formatSecondsToHHMMSS(currentSeconds)} guardada en Mi Progreso.`,
       });
     } catch (err) {
       setFeedback({

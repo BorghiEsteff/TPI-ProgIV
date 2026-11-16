@@ -63,19 +63,26 @@ const RecommendationChat = ({ onAsk, onAddToDiary, loading = false }) => {
               const isAdded = addedIds.has(rec.media_item_id);
               return (
                 <Col md={6} lg={4} key={rec.media_item_id}>
-                  <Card className="h-100 shadow-sm">
+                  <Card className="h-100 ct-media-card">
                     {rec.poster_image && (
-                      <Card.Img
-                        variant="top"
-                        src={rec.poster_image}
-                        alt={rec.title}
-                        style={{ height: 200, objectFit: 'cover' }}
-                      />
+                      <div className="ct-poster-frame">
+                        <Card.Img
+                          variant="top"
+                          src={rec.poster_image}
+                          alt={rec.title}
+                          className="ct-poster-img"
+                        />
+                      </div>
                     )}
                     <Card.Body className="d-flex flex-column">
-                      <div className="d-flex justify-content-between align-items-start mb-2">
-                        <Card.Title className="h6 mb-0">{rec.title}</Card.Title>
-                        <Badge bg="secondary">{rec.media_type}</Badge>
+                      <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <Card.Title as="h2" className="h6 mb-0">{rec.title}</Card.Title>
+                        <Badge
+                          bg=""
+                          className={rec.media_type === 'SERIE' ? 'ct-badge-serie' : 'ct-badge-pelicula'}
+                        >
+                          {rec.media_type}
+                        </Badge>
                       </div>
                       <Card.Text className="small text-muted flex-grow-1">{rec.reason}</Card.Text>
                       <div className="d-flex gap-2 mt-2">

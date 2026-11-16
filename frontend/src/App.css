@@ -1,9 +1,142 @@
+.ct-app-shell {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ── Dark Plum Chrome: Navbar & Footer (Mantener intactos) ──────────────────── */
+.ct-navbar {
+  background-color: rgba(24, 8, 40, 0.94) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(180, 140, 224, 0.24);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+
+.ct-navbar .navbar-brand,
+.ct-navbar .ct-brand-mark {
+  color: #EDE2F7 !important;
+  letter-spacing: -0.02em;
+}
+
+.ct-navbar .nav-link {
+  color: #D3B9EC !important;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  transition: color 150ms ease-out, border-color 150ms ease-out;
+}
+
+.ct-navbar .nav-link:hover,
+.ct-navbar .nav-link:focus-visible {
+  color: #FFFFFF !important;
+}
+
+.ct-navbar .nav-link.active {
+  color: #FFFFFF !important;
+  border-bottom-color: #C55AD6;
+  font-weight: 600;
+}
+
+.ct-navbar .btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ct-footer {
+  background-color: var(--bg-chrome-dark);
+  color: #EDE2F7;
+  border-top: 1px solid rgba(180, 140, 224, 0.24);
+}
+
+.ct-footer .ct-brand-mark {
+  color: #EDE2F7;
+}
+
+.ct-footer-muted {
+  color: #D3B9EC;
+}
+
+.ct-footer-link {
+  color: #D3B9EC;
+  text-decoration: none;
+  transition: color 150ms ease-out;
+}
+
+.ct-footer-link:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
+/* ── Minimalist Catalog Header ──────────────────────────────────────────────── */
+.ct-catalog-header {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ct-catalog-title {
+  font-size: clamp(1.5rem, 2.2vw, 1.85rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  border-left: 3px solid var(--brand-accent);
+  padding-left: 0.75rem;
+}
+
+.ct-catalog-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 0;
+  padding-left: 0.95rem;
+}
+
+/* ── Barra de filtros y Cards (Light Mode) ──────────────────────────────────── */
+.ct-filter-bar {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 12px !important;
+}
+
+.card {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-card);
+}
+
+.card-header,
+.card-footer,
+.list-group-item {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+.ct-media-card {
+  transition: transform 160ms ease-out, box-shadow 160ms ease-out, border-color 160ms ease-out;
+}
+
+.ct-media-card:hover {
+  transform: translateY(-3px);
+  border-color: #D3B9EC !important;
+  box-shadow: var(--shadow-card-hover) !important;
+}
+
+/* ── Portadas 2:3 ───────────────────────────────────────────────────────────── */
 .ct-poster-frame {
   aspect-ratio: 2 / 3;
   width: 100%;
   overflow: hidden;
-  background-color: #27272a;
-  border-bottom: 1px solid var(--ct-border);
+  background-color: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  border-top-left-radius: 11px;
+  border-top-right-radius: 11px;
 }
 
 .ct-poster-img {
@@ -16,49 +149,208 @@
 .ct-poster-fallback {
   aspect-ratio: 2 / 3;
   width: 100%;
-  background: linear-gradient(160deg, #27272a 0%, #18181b 100%);
-  color: #f4f4f5;
+  background: linear-gradient(160deg, var(--bg-elevated) 0%, var(--brand-soft) 100%);
+  color: var(--brand-primary);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   text-align: center;
-  border-bottom: 1px solid var(--ct-border);
+  border-bottom: 1px solid var(--border-subtle);
+  border-top-left-radius: 11px;
+  border-top-right-radius: 11px;
 }
 
-.ct-media-card {
-  background-color: var(--ct-surface);
-  border: 1px solid var(--ct-border) !important;
-  box-shadow: var(--ct-shadow-sm) !important;
-  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
-}
-
-.ct-media-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--ct-shadow-md) !important;
-}
-
-.ct-badge-pelicula {
-  background-color: #18181b !important;
-  color: #ffffff !important;
-}
-
+/* ── Badges de tipo, género y estados ───────────────────────────────────────── */
+.ct-badge-pelicula,
 .ct-badge-serie {
-  background-color: #1e3a8a !important;
-  color: #ffffff !important;
+  background-color: var(--brand-soft) !important;
+  color: var(--brand-primary) !important;
+  border: 1px solid #D3B9EC;
+  font-weight: 600;
 }
 
-.ct-navbar {
-  background-color: #18181b !important;
-  border-bottom: 2px solid var(--ct-accent);
+.ct-genre-badge {
+  background-color: var(--brand-soft) !important;
+  color: var(--brand-primary) !important;
+  border: 1px solid #D3B9EC !important;
+  font-weight: 500;
 }
 
-.ct-navbar .nav-link,
-.ct-navbar .btn {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
+.ct-status-badge {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.ct-status-pendiente {
+  background-color: #E0F2FE !important;
+  color: #0369A1 !important;
+  border: 1px solid #7DD3FC;
+}
+
+.ct-status-viendo {
+  background-color: #F3E8FF !important;
+  color: #6B21A8 !important;
+  border: 1px solid #D8B4FE;
+}
+
+.ct-status-visto {
+  background-color: #CCFBF1 !important;
+  color: #0F766E !important;
+  border: 1px solid #5EEAD4;
+}
+
+.ct-status-abandonado {
+  background-color: #FFE4E6 !important;
+  color: #BE123C !important;
+  border: 1px solid #FDA4AF;
+}
+
+/* ── Botones Bootstrap ──────────────────────────────────────────────────────── */
+.btn-primary {
+  --bs-btn-bg: var(--brand-primary);
+  --bs-btn-border-color: var(--brand-primary);
+  --bs-btn-hover-bg: var(--brand-primary-hover);
+  --bs-btn-hover-border-color: var(--brand-primary-hover);
+  --bs-btn-active-bg: var(--brand-primary-hover);
+  --bs-btn-focus-shadow-rgb: 147, 95, 211;
+  background-color: var(--brand-primary) !important;
+  border-color: var(--brand-primary) !important;
+  color: #FFFFFF !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible,
+.btn-primary:active {
+  background-color: var(--brand-primary-hover) !important;
+  border-color: var(--brand-primary-hover) !important;
+  color: #FFFFFF !important;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--brand-primary);
+  --bs-btn-border-color: #D3B9EC;
+  --bs-btn-hover-color: #FFFFFF;
+  --bs-btn-hover-bg: var(--brand-primary);
+  --bs-btn-hover-border-color: var(--brand-primary);
+  color: var(--brand-primary) !important;
+  border-color: #D3B9EC !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus-visible {
+  background-color: var(--brand-primary) !important;
+  border-color: var(--brand-primary) !important;
+  color: #FFFFFF !important;
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--brand-primary);
+  --bs-btn-border-color: #D3B9EC;
+  --bs-btn-hover-color: var(--text-primary);
+  --bs-btn-hover-bg: var(--brand-soft);
+  --bs-btn-hover-border-color: var(--border-focus);
+  color: var(--brand-primary) !important;
+  border-color: #D3B9EC !important;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus-visible {
+  background-color: var(--brand-soft) !important;
+  border-color: var(--border-focus) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Mantener botón Cerrar Sesión legible dentro de Navbar oscuro */
+.ct-navbar .btn-outline-light {
+  color: #EDE2F7 !important;
+  border-color: rgba(237, 226, 247, 0.45) !important;
+}
+
+.ct-navbar .btn-outline-light:hover {
+  background-color: rgba(237, 226, 247, 0.14) !important;
+  color: #FFFFFF !important;
+}
+
+/* ── Inputs, Selects, Accordion, Alerts, Modals, Pagination ─────────────────── */
+.form-control,
+.form-select {
+  background-color: #FFFFFF !important;
+  color: var(--text-primary) !important;
+  border-color: #D3B9EC !important;
+}
+
+.form-control::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.9;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--brand-primary) !important;
+  box-shadow: 0 0 0 3px rgba(147, 95, 211, 0.18) !important;
+}
+
+.accordion-item {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+.accordion-button {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  box-shadow: none !important;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--brand-soft) !important;
+  color: var(--brand-primary) !important;
+}
+
+.pagination .page-link {
+  background-color: var(--bg-surface);
+  border-color: var(--border-subtle);
+  color: var(--brand-primary);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #FFFFFF;
+}
+
+.text-muted,
+.text-secondary,
+.form-text {
+  color: var(--text-secondary) !important;
+}
+
+.text-dark {
+  color: var(--text-primary) !important;
+}
+
+.bg-light {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+.bg-white {
+  background-color: #FFFFFF !important;
+  color: var(--text-primary) !important;
+}
+
+.modal-content {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: var(--shadow-card-hover);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--border-subtle) !important;
 }
 
 @media (max-width: 767.98px) {

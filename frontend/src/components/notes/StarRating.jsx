@@ -11,6 +11,16 @@ const StarRating = ({ value = null, onChange, disabled = false }) => {
             type="button"
             size="sm"
             variant={active ? 'warning' : 'outline-secondary'}
+            style={
+              active
+                ? {
+                    backgroundColor: 'var(--accent-gold)',
+                    borderColor: 'var(--accent-gold)',
+                    color: '#180828',
+                    fontWeight: 700,
+                  }
+                : undefined
+            }
             disabled={disabled}
             onClick={() => onChange(star)}
             aria-label={`${star} ${star === 1 ? 'estrella' : 'estrellas'}`}

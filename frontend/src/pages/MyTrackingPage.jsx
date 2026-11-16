@@ -275,7 +275,7 @@ const MyTrackingPage = () => {
                       <div className="d-flex flex-wrap gap-2">
                         <Button
                           size="sm"
-                          variant="outline-dark"
+                          variant="outline-secondary"
                           disabled={isRecBusy}
                           onClick={() => handleReconcile(conflict.id, 'keep_canonical')}
                           data-testid={`reconcile-keep-${conflict.id}`}
@@ -414,7 +414,7 @@ const MyTrackingPage = () => {
                           {displayGenres.length > 0 && (
                             <div className="d-flex flex-wrap gap-1 mt-1">
                               {displayGenres.map((g) => (
-                                <Badge key={g.id} bg="light" text="dark" className="border">
+                                <Badge key={g.id} bg="" className="ct-genre-badge">
                                   {g.name}
                                 </Badge>
                               ))}

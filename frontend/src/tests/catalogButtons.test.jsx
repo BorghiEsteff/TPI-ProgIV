@@ -6,7 +6,7 @@ import MediaCard from '../components/catalog/MediaCard';
 import MediaFilterBar from '../components/catalog/MediaFilterBar';
 
 describe('Botones e interacciones de Catalogo', () => {
-  it('MediaFilterBar dispara callbacks al cambiar tipo, genero, modo de consulta, buscar y limpiar', async () => {
+  it('MediaFilterBar oculta selector tecnico por defecto y dispara callbacks de tipo, genero, buscar y limpiar', async () => {
     const user = userEvent.setup();
     const onFilterChange = vi.fn();
     const onQueryModeChange = vi.fn();
@@ -28,8 +28,10 @@ describe('Botones e interacciones de Catalogo', () => {
       />
     );
 
+    expect(screen.queryByText(/Modo de consulta/i)).not.toBeInTheDocument();
     const selects = screen.getAllByRole('combobox');
-    // selects[0]: Tipo, selects[1]: Genero, selects[2]: Modo de consulta
+    expect(selects).toHaveLength(2);
+    // selects[0]: Tipo, selects[1]: Genero
     await user.selectOptions(selects[0], 'SERIE');
     expect(onFilterChange).toHaveBeenCalledWith({
       search: '',
@@ -44,14 +46,34 @@ describe('Botones e interacciones de Catalogo', () => {
       genre: '1',
     });
 
-    await user.selectOptions(selects[2], 'GRAPHQL');
-    expect(onQueryModeChange).toHaveBeenCalledWith('GRAPHQL');
-
     await user.click(screen.getByRole('button', { name: 'Buscar' }));
     expect(onSubmit).toHaveBeenCalledTimes(1);
 
     await user.click(screen.getByRole('button', { name: 'Limpiar' }));
     expect(onReset).toHaveBeenCalledTimes(1);
+  });
+
+  it('MediaFilterBar expone selector REST/GraphQL solo cuando showQueryMode es true (?debug=1)', async () => {
+    const user = userEvent.setup();
+    const onQueryModeChange = vi.fn();
+
+    render(
+      <MediaFilterBar
+        filters={{ search: '', media_type: '', genre: '' }}
+        genres={[{ id: 1, name: 'Ciencia Ficcion' }]}
+        queryMode="REST"
+        showQueryMode={true}
+        onFilterChange={vi.fn()}
+        onQueryModeChange={onQueryModeChange}
+        onSubmit={vi.fn()}
+        onReset={vi.fn()}
+      />
+    );
+
+    const selects = screen.getAllByRole('combobox');
+    expect(selects).toHaveLength(3);
+    await user.selectOptions(selects[2], 'GRAPHQL');
+    expect(onQueryModeChange).toHaveBeenCalledWith('GRAPHQL');
   });
 
   it('MediaCard muestra enlace a ficha tecnica sin Sala en Vivo y ejecuta onTrackMedia solo cuando hay sesion', async () => {

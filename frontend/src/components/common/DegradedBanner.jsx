@@ -2,9 +2,9 @@ import { Alert, Badge } from 'react-bootstrap';
 
 const DEGRADED_MESSAGES = {
   catalog:
-    'Modo de contingencia activo (X-Degraded-Mode): el servicio de catalogo relacional no responde temporalmente. Se muestran datos locales o parciales.',
+    'Algunos datos del catálogo pueden tardar un momento en actualizarse. Mostramos la información disponible.',
   ai:
-    'Analisis IA en contingencia (X-Degraded-AI): el analizador semantico opera con heuristica local de respaldo.',
+    'El asistente de recomendaciones está funcionando en modo de respaldo con coincidencias del catálogo.',
 };
 
 const DegradedBanner = ({ show, mode = 'catalog' }) => {
@@ -13,7 +13,7 @@ const DegradedBanner = ({ show, mode = 'catalog' }) => {
   return (
     <Alert variant="warning" className="my-3 d-flex align-items-center gap-2">
       <Badge bg="warning" text="dark">
-        CONTINGENCIA
+        AVISO
       </Badge>
       <span>{DEGRADED_MESSAGES[mode] || DEGRADED_MESSAGES.catalog}</span>
     </Alert>
@@ -21,4 +21,3 @@ const DegradedBanner = ({ show, mode = 'catalog' }) => {
 };
 
 export default DegradedBanner;
-

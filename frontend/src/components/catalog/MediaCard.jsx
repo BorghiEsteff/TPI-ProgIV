@@ -35,7 +35,7 @@ const MediaCard = ({
 
       <Card.Body className="d-flex flex-column">
         <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
-          <Card.Title as="h2" className="mb-0 fs-6 fw-bold">
+          <Card.Title as="h2" className="mb-0 fs-6 fw-semibold">
             <Link to={`/media/${item.id}`} className="text-decoration-none text-dark">
               {item.title}
             </Link>
@@ -52,7 +52,7 @@ const MediaCard = ({
 
         <div className="d-flex flex-wrap gap-1 mb-2">
           {(item.genres || []).map((genre) => (
-            <Badge key={genre.id || genre.name} bg="light" text="dark" className="border">
+            <Badge key={genre.id || genre.name} bg="" className="ct-genre-badge">
               {genre.name}
             </Badge>
           ))}
