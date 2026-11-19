@@ -1,74 +1,22 @@
-# CineTrack - Media Tracker & Community Platform
+# CineTrack — Rama Especializada `backend-node` (Node.js + Express + MongoDB)
 
-Trabajo Práctico Integrador para la cátedra de **Programación IV** (Plan 2024).  
-Universidad Tecnológica Nacional – Facultad Regional Resistencia (Extensión Áulica Goya).
+Esta rama contiene una instantanea selectiva y no destructiva desde `main` (`7b7c1712bd3c31e5493ccc414e5f88f3582d5950`) enfocada exclusivamente en el servicio Node.js del ecosistema CineTrack:
 
-**Docentes:**
-- Ing. Juan Manuel Goya (Línea Python)
-- Prof. Gerardo Ramírez (Línea JavaScript)
+- **`backend-node/`**: API REST en Express, Mongoose (`PersonalNote`, `ActivityLog` y codigo historico de `Review` / `socketService.js`), verificacion JWT (`HS256` emitido por Django), endpoint `/api/v1/recommendations` (con preseleccion sobre catalogo activo, rate limiting y revalidacion), GraphQL (`express-graphql`), pruebas Jest/Supertest, `Dockerfile` y `.env.example`.
+- **`docs/backend-node/`**: Copias de referencia de la documentacion de integracion, contrato JWT, OpenAPI Node y reportes QA pertinentes (la documentacion integral completa permanece en `main`).
 
----
+## Dependencias Externas (No Duplicadas)
 
-## 1. Declaración de Uso de Asistentes de IA
-En cumplimiento con el reglamento de la cátedra, se declara el uso de asistentes de IA:
-- **Herramienta utilizada:** Gemini Flash 3.8 Medium / Antigravity IDE.
-- **Finalidad:** Asistencia en la generación de esqueletos de código y redacción de documentación técnica preliminar.
-- **Responsabilidad:** Todo el código y arquitectura han sido revisados, comprendidos y son defendibles en su totalidad por los integrantes del equipo.
+Este servicio no puede ejecutarse de forma aislada completa sin sus dependencias externas:
+- **MongoDB (`MONGODB_URI`):** Base documental para notas personales y registros de actividad.
+- **Backend Django (`http://localhost:8000/api/v1`):** Autoridad emisora de JWT (`JWT_SIGNING_KEY` compartido), catalogo publicado y verificacion de propiedad de entradas (`verify-ownership`).
+- **Service AI FastAPI (`http://localhost:8002/ai`):** Inferencia de recomendaciones (`/recommend`) con fallback determinista local en Node si FastAPI no responde.
+- **Restriccion de merge:** No fusionar esta rama completa hacia `main` (contiene unicamente el servicio Node). Integrar cambios puntuales mediante cherry-pick o rutas especificas.
 
----
+## Ejecucion de Pruebas
 
-## 2. Arquitectura General y Tecnologías
-- `backend-django/`: Django 5, DRF, PostgreSQL 16, SimpleJWT.
-- `backend-node/`: Node.js 20, Express, Mongoose 8, MongoDB 7, Socket.IO 4.
-- `service-ai/`: FastAPI, Pydantic v2, Ollama local (`llama3.2:1b`).
-- `docs/`: Entregas oficiales de las Fases 0 a 5.
-
----
-
-## 3. Instrucciones de Puesta en Marcha (Entorno Local)
-
-### Requisitos previos
-- Python 3.11+
-- Node.js 20 LTS
-- Git
-
-### Paso 1: Clonar el repositorio
 ```bash
-git clone https://github.com/BorghiEsteff/TPI-ProgIV.git
-cd TPI-ProgIV
-```
-
-### Paso 2: Configurar variables de entorno
-```bash
-cp backend-django/.env.example backend-django/.env
-cp backend-node/.env.example backend-node/.env
-cp service-ai/.env.example service-ai/.env
-```
-
-### Paso 3: Inicializar Backend Django
-```bash
-cd backend-django
-python -m venv venv
-# En Windows:
-.\venv\Scripts\activate
-# En Linux/macOS:
-source venv/bin/activate
-
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver 8000
-```
-
-### Paso 4: Inicializar Backend Node
-```bash
-cd ../backend-node
-npm install
-npm run dev
-```
-
-### Paso 5: Inicializar Microservicio de IA
-```bash
-cd ../service-ai
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8002
+cd backend-node
+npm ci
+npm test
 ```
