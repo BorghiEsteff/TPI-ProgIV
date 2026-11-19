@@ -1,5 +1,10 @@
-from typing import List, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
+
+
+class HistoryMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(..., min_length=1, max_length=500)
 
 
 class CandidateMedia(BaseModel):
@@ -7,6 +12,7 @@ class CandidateMedia(BaseModel):
     title: str
     media_type: str
     release_year: Optional[int] = None
+    duration_minutes: Optional[int] = None
     genres: List[str] = Field(default_factory=list)
     country_of_origin: str = ""
     tags: List[str] = Field(default_factory=list)
@@ -16,6 +22,7 @@ class CandidateMedia(BaseModel):
 class RecommendRequest(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=500, description="Consulta en lenguaje natural")
     candidates: List[CandidateMedia] = Field(default_factory=list, max_length=50)
+    history: List[HistoryMessage] = Field(default_factory=list, max_length=6)
 
 
 class RecommendationItem(BaseModel):

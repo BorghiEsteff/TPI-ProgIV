@@ -4,6 +4,7 @@ import AppNavbar from './components/layout/AppNavbar';
 import Footer from './components/layout/Footer';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import RoleGuard from './components/layout/RoleGuard';
+import FloatingRecommendationChat from './components/recommendations/FloatingRecommendationChat';
 import { AuthProvider } from './context/AuthContext';
 import AdminMediaEditPage from './pages/AdminMediaEditPage';
 import AdminSubmissionsPage from './pages/AdminSubmissionsPage';
@@ -56,6 +57,7 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
+          <FloatingRecommendationChat />
           <Footer />
         </div>
       </BrowserRouter>

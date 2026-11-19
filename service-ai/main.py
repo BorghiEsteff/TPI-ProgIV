@@ -43,6 +43,7 @@ def recommend_endpoint(payload: RecommendRequest, response: Response):
     result = recommend_from_catalog(
         prompt=payload.prompt,
         candidates=payload.candidates,
+        history=payload.history,
     )
     if result.degraded:
         response.headers["X-Degraded-AI"] = "true"

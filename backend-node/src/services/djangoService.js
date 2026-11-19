@@ -79,7 +79,7 @@ export const fetchPublishedCatalogCandidates = async () => {
   try {
     const candidates = [];
     let page = 1;
-    const maxPages = 5;
+    const maxPages = 50;
 
     while (page <= maxPages) {
       const response = await djangoClient.get('/media/', {
@@ -87,7 +87,7 @@ export const fetchPublishedCatalogCandidates = async () => {
       });
       const data = response.data;
       const results = Array.isArray(data) ? data : data?.results || [];
-      candidates.push(...results);
+      candidates.push(...results.filter((item) => item?.is_active !== false));
 
       if (Array.isArray(data) || !data?.next) {
         break;
