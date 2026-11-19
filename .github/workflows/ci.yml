@@ -1,0 +1,96 @@
+name: CineTracker CI
+
+on:
+  push:
+    branches: [main, backend-django, backend-node, frontend]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-django:
+    name: Django REST & GraphQL (PostgreSQL 16)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cinetrack_test
+          POSTGRES_USER: cinetrack_user
+          POSTGRES_PASSWORD: cinetrack_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend-django/requirements.txt
+      - name: Run migrations and pytest
+        working-directory: backend-django
+        env:
+          SECRET_KEY: ci-django-secret-key
+          DEBUG: 'False'
+          ALLOWED_HOSTS: localhost,127.0.0.1
+          DB_ENGINE: django.db.backends.postgresql
+          DB_NAME: cinetrack_test
+          DB_USER: cinetrack_user
+          DB_PASSWORD: cinetrack_test_password
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          JWT_SIGNING_KEY: ci-shared-jwt-signing-key-32-chars-min
+        run: |
+          python manage.py migrate --noinput
+          pytest
+
+  service-ai:
+    name: FastAPI AI Recommender
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r service-ai/requirements.txt pytest httpx
+      - name: Run pytest
+        working-directory: service-ai
+        run: pytest
+
+  backend-node:
+    name: Node.js API & GraphQL
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install and test
+        working-directory: backend-node
+        run: |
+          npm ci
+          npm test
+
+  frontend:
+    name: Frontend React (Vitest + Build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install, test and build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm test
+          npm run build

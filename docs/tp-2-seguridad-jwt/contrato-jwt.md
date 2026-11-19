@@ -34,7 +34,7 @@ sequenceDiagram
 - **Vida Útil Refresh Token:** 1 día (`REFRESH_TOKEN_LIFETIME = timedelta(days=1)`).
 
 ### Estructura del Payload del Access Token
-El serializer [`CustomTokenObtainPairSerializer`](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/backend-django/users/serializers.py) enriquece el payload estándar con los siguientes claims:
+El serializer [`CustomTokenObtainPairSerializer`](../../backend-django/users/serializers.py) enriquece el payload estándar con los siguientes claims:
 
 ```json
 {
@@ -183,7 +183,7 @@ function authenticateJWT(req, res, next) {
 2. **A01:2021 - Pérdida de Control de Acceso (Broken Access Control):**
    - El endpoint `/api/v1/tracking/` implementa control de acceso a nivel de objeto mediante filtrado en `get_queryset()`: un usuario autenticado solo puede visualizar o mutar sus propios registros de progreso (`UserProgress.objects.filter(user=request.user)`).
    - El usuario asociado a cualquier creación o actualización se asigna en el servidor (`perform_create(user=request.user)`), bloqueando cualquier intento de suplantación de identidad (IDOR).
-   - Permiso personalizado [`IsCriticOrAdmin`](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/backend-django/core/permissions.py) para endpoints administrativos y editoriales.
+   - Permiso personalizado [`IsCriticOrAdmin`](../../backend-django/core/permissions.py) para endpoints administrativos y editoriales.
 3. **A07:2021 - Fallas de Identificación y Autenticación:**
    - Caducidad forzada de tokens de corta duración (60 minutos para acceso).
    - Validación rigurosa de fortaleza de contraseñas mediante validadores de Django (longitud mínima de 8 caracteres, validación contra atributos de usuario y contraseñas comunes).

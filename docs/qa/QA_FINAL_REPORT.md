@@ -19,10 +19,10 @@
 | **Frontend Vitest + Build** | `npm test -- --run; npm run build` | **5 archivos / 15 PASS + Build OK** | Sin errores de compilación Vite (`dist/`). |
 
 ## Evidencias generadas (Caso Matrix)
-- [matrix-admin-queue.png](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/docs/qa/evidence/matrix-admin-queue.png)
-- [matrix-public-catalog.png](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/docs/qa/evidence/matrix-public-catalog.png)
-- [matrix-diary-a.png](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/docs/qa/evidence/matrix-diary-a.png)
-- [matrix-diary-b.png](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/docs/qa/evidence/matrix-diary-b.png)
+- [matrix-admin-queue.png](../../docs/qa/evidence/matrix-admin-queue.png)
+- [matrix-public-catalog.png](../../docs/qa/evidence/matrix-public-catalog.png)
+- [matrix-diary-a.png](../../docs/qa/evidence/matrix-diary-a.png)
+- [matrix-diary-b.png](../../docs/qa/evidence/matrix-diary-b.png)
 
 ## Elementos NO verificados / Bloqueados en este entorno
 - **Restricciones reales en PostgreSQL:** **BLOCKED**. El servicio local `postgresql-x64-18` rechaza las credenciales de `cinetrack_user` y el daemon de Docker Desktop está detenido.

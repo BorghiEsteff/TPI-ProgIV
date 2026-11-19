@@ -11,7 +11,7 @@ services:
     environment:
       POSTGRES_DB: ${DB_NAME:-cinetrack_db}
       POSTGRES_USER: ${DB_USER:-cinetrack_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-cinetrack_pass}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD in .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -55,16 +55,17 @@ services:
     ports:
       - "8000:8000"
     environment:
-      SECRET_KEY: ${SECRET_KEY:-django-insecure-cinetrack-default-key-dev}
-      DEBUG: ${DEBUG:-True}
-      ALLOWED_HOSTS: "*"
+      SECRET_KEY: ${SECRET_KEY:?Configure SECRET_KEY in .env}
+      DEBUG: ${DEBUG:-False}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,django-backend}
       DB_ENGINE: django.db.backends.postgresql
       DB_NAME: ${DB_NAME:-cinetrack_db}
       DB_USER: ${DB_USER:-cinetrack_user}
-      DB_PASSWORD: ${DB_PASSWORD:-cinetrack_pass}
+      DB_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD in .env}
       DB_HOST: postgres
       DB_PORT: 5432
-      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-super-secret-jwt-signing-key-shared-between-services}
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:?Configure JWT_SIGNING_KEY in .env}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
     depends_on:
       postgres:
         condition: service_healthy
@@ -90,11 +91,12 @@ services:
     environment:
       PORT: 5000
       NODE_ENV: production
-      MONGO_URI: mongodb://mongo:27017/${MONGO_DB:-cinetrack_social}
-      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-super-secret-jwt-signing-key-shared-between-services}
+      MONGODB_URI: mongodb://mongo:27017/${MONGO_DB:-cinetrack_social}
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:?Configure JWT_SIGNING_KEY in .env}
       DJANGO_API_URL: http://django-backend:8000/api/v1
       AI_SERVICE_URL: http://service-ai:8002/ai
       AI_TIMEOUT_MS: 4000
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:5173,http://127.0.0.1:5173}
     depends_on:
       mongo:
         condition: service_healthy
@@ -134,6 +136,31 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ============================================================================
+  # 6. Frontend SPA (React + Vite)
+  # ============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cinetrack_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_DJANGO_API_URL: ${VITE_DJANGO_API_URL:-http://localhost:8000/api/v1}
+      VITE_DJANGO_GRAPHQL_URL: ${VITE_DJANGO_GRAPHQL_URL:-http://localhost:8000/graphql/}
+      VITE_NODE_API_URL: ${VITE_NODE_API_URL:-http://localhost:5000/api/v1}
+      VITE_NODE_GRAPHQL_URL: ${VITE_NODE_GRAPHQL_URL:-http://localhost:5000/graphql}
+      VITE_NODE_SOCKET_URL: ${VITE_NODE_SOCKET_URL:-http://localhost:5000}
+    depends_on:
+      django-backend:
+        condition: service_started
+      node-backend:
+        condition: service_started
+    networks:
+      - cinetrack-net
 
 volumes:
   postgres_data:

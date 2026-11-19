@@ -46,7 +46,7 @@
 ## 4. Auditoría PostgreSQL REAL
 - **Estado:** **BLOCKED**.
 - **Diagnóstico:** El servicio Windows `postgresql-x64-18` está en ejecución (`Running`), pero rechaza las credenciales configuradas en `backend-django/.env` para `cinetrack_user` (`psycopg2.connect` falla con error de autenticación). Adicionalmente, el daemon de Docker Desktop está detenido (`//./pipe/dockerDesktopLinuxEngine` no disponible).
-- **Hardening aplicado:** Se actualizó [settings.py](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/backend-django/core/settings.py#L85-L115) con `DB_STRICT` / `_EXPLICIT_PG`: cuando se solicita PostgreSQL explícitamente (`DB_ENGINE=django.db.backends.postgresql` o `DB_STRICT=1`), Django **ya no** hace fallback silencioso a SQLite (verificado conectando a puerto `5499` -> `ENGINE: django.db.backends.postgresql`).
+- **Hardening aplicado:** Se actualizó [settings.py](../../backend-django/core/settings.py#L85-L115) con `DB_STRICT` / `_EXPLICIT_PG`: cuando se solicita PostgreSQL explícitamente (`DB_ENGINE=django.db.backends.postgresql` o `DB_STRICT=1`), Django **ya no** hace fallback silencioso a SQLite (verificado conectando a puerto `5499` -> `ENGINE: django.db.backends.postgresql`).
 - **Acción de desbloqueo:** Iniciar Docker Desktop para levantar un contenedor PostgreSQL QA descartable, o proveer credenciales válidas de un usuario/BD QA en `postgresql-x64-18`, y ejecutar los comandos de la Sección 2 de `docs/qa/QA_REPRODUCCION_FINAL.md`.
 
 ## 5. FastAPI y Groq REAL vs Modo Limitado
@@ -59,7 +59,7 @@
 | Fallo `429`/timeout y JSON malformado | Mock Groq | 200 | Header `X-Degraded-AI: true`, fallback determinista sin exponer clave | **PASS** |
 
 ## 6. Matriz de 40 Escenarios (Relación Escenario -> Spec -> Resultado)
-Los 40 escenarios funcionales (`E2E-01`..`E2E-40`) están trazados en [QA_MATRIX.md](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/docs/qa/QA_MATRIX.md) y cubiertos por **16 tests Playwright por proyecto** (`chromium-desktop` y `chromium-mobile`) más pruebas unitarias/integración complementarias:
+Los 40 escenarios funcionales (`E2E-01`..`E2E-40`) están trazados en [QA_MATRIX.md](../../docs/qa/QA_MATRIX.md) y cubiertos por **16 tests Playwright por proyecto** (`chromium-desktop` y `chromium-mobile`) más pruebas unitarias/integración complementarias:
 - `01-public-catalog.spec.js` (2 tests): `E2E-01`, `E2E-02` -> **PASS**
 - `02-auth-roles.spec.js` (4 tests): `E2E-03`..`E2E-06`, `E2E-38` (móvil) -> **PASS**
 - `03-private-diary.spec.js` (2 tests): `E2E-07`..`E2E-15` -> **PASS**
@@ -82,7 +82,7 @@ Los 40 escenarios funcionales (`E2E-01`..`E2E-40`) están trazados en [QA_MATRIX
 | `frontend`: `npm run build` | Vite 8.3.8 | 1 | 1 | 0 | 0 | 0 | 959ms |
 
 ## 8. Registro de Defectos
-Ver detalle completo en [QA_BUGS_FIXED.md](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/docs/qa/QA_BUGS_FIXED.md):
+Ver detalle completo en [QA_BUGS_FIXED.md](../../docs/qa/QA_BUGS_FIXED.md):
 - **P0 corregido:** Crash en `MyTrackingPage.jsx` al no pasar `progress` a `SecondsInputControl.jsx`.
 - **P1 corregido:** Botón heredado `Sala en Vivo` en `MediaCard.jsx`, subtítulo heredado en `LoginPage.jsx`, y `CLIENT_ORIGIN` multi-origen + allowlist específica (sin `'*'`) en `backend-node/src/app.js`.
 - **P1 hardening:** `settings.py` sin fallback silencioso cuando se solicita PostgreSQL explícitamente.

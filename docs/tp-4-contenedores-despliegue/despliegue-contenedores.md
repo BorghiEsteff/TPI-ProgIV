@@ -51,10 +51,10 @@ flowchart TD
 Para garantizar total independencia entre microservicios y evitar colisiones de archivos:
 
 - **Capa Social y Reseñas (Node.js):**
-  - Documentada en [`docs/tp-4-contenedores-despliegue/openapi.json`](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/docs/tp-4-contenedores-despliegue/openapi.json).
+  - Documentada en [`docs/tp-4-contenedores-despliegue/openapi.json`](../../docs/tp-4-contenedores-despliegue/openapi.json).
   - Define las operaciones CRUD de reseñas, subdocumentos de respuestas y esquema de seguridad Bearer.
 - **Identidad, Catálogo y Tracking (Django):**
-  - Generada dinámicamente con `drf-spectacular` y exportada en [`docs/tp-4-contenedores-despliegue/openapi-django.json`](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/docs/tp-4-contenedores-despliegue/openapi-django.json).
+  - Generada dinámicamente con `drf-spectacular` y exportada en [`docs/tp-4-contenedores-despliegue/openapi-django.json`](../../docs/tp-4-contenedores-despliegue/openapi-django.json).
   - Endpoints interactivos disponibles en ejecución:
     - `GET /api/schema/`: Especificación OpenAPI 3.0 en JSON/YAML.
     - `GET /api/docs/`: Interfaz interactiva Swagger UI.
@@ -65,7 +65,7 @@ Para garantizar total independencia entre microservicios y evitar colisiones de 
 ## 4. Capa GraphQL y Consultas Federadas
 
 ### A. Endpoint GraphQL en Django: `POST /graphql/`
-Implementado con `graphene-django` en [`backend-django/catalog/schema.py`](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/backend-django/catalog/schema.py):
+Implementado con `graphene-django` en [`backend-django/catalog/schema.py`](../../backend-django/catalog/schema.py):
 
 ```graphql
 query ListCatalogAndItem($id: Int!) {

@@ -6,6 +6,333 @@
         "description": "API REST con autoridad central de identidad JWT, catálogo y tracking de contenido (TP 2 - CineTrack)"
     },
     "paths": {
+        "/api/v1/admin/submissions/": {
+            "get": {
+                "operationId": "v1_admin_submissions_list",
+                "description": "Cola de moderación exclusiva para ADMIN (DTO sanitizado sin notas ni ratings).",
+                "parameters": [
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Número de resultados a devolver por página.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedAdminSubmissionList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/submissions/{id}/": {
+            "get": {
+                "operationId": "v1_admin_submissions_retrieve",
+                "description": "Cola de moderación exclusiva para ADMIN (DTO sanitizado sin notas ni ratings).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Un valor de entero único que identifique este Propuesta de Obra.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AdminSubmission"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/submissions/{id}/candidates/": {
+            "get": {
+                "operationId": "v1_admin_submissions_candidates_retrieve",
+                "description": "Cola de moderación exclusiva para ADMIN (DTO sanitizado sin notas ni ratings).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Un valor de entero único que identifique este Propuesta de Obra.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AdminSubmission"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/submissions/{id}/merge/": {
+            "post": {
+                "operationId": "v1_admin_submissions_merge_create",
+                "description": "Cola de moderación exclusiva para ADMIN (DTO sanitizado sin notas ni ratings).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Un valor de entero único que identifique este Propuesta de Obra.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdminSubmission"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdminSubmission"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdminSubmission"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AdminSubmission"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/submissions/{id}/publish/": {
+            "post": {
+                "operationId": "v1_admin_submissions_publish_create",
+                "description": "Cola de moderación exclusiva para ADMIN (DTO sanitizado sin notas ni ratings).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Un valor de entero único que identifique este Propuesta de Obra.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdminSubmission"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdminSubmission"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdminSubmission"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AdminSubmission"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/submissions/{id}/reject/": {
+            "post": {
+                "operationId": "v1_admin_submissions_reject_create",
+                "description": "Cola de moderación exclusiva para ADMIN (DTO sanitizado sin notas ni ratings).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Un valor de entero único que identifique este Propuesta de Obra.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdminSubmission"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdminSubmission"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdminSubmission"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AdminSubmission"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/auth/login/": {
             "post": {
                 "operationId": "v1_auth_login_create",
@@ -290,6 +617,15 @@
                         }
                     },
                     {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Número de resultados a devolver por página.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "search",
                         "required": false,
                         "in": "query",
@@ -315,8 +651,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -362,8 +697,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "201": {
@@ -402,8 +736,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -460,8 +793,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -517,8 +849,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -555,8 +886,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "204": {
@@ -588,6 +918,15 @@
                         }
                     },
                     {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Número de resultados a devolver por página.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "search",
                         "required": false,
                         "in": "query",
@@ -606,8 +945,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -653,8 +991,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "201": {
@@ -693,8 +1030,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -751,8 +1087,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -808,8 +1143,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -846,8 +1180,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "204": {
@@ -912,6 +1245,15 @@
                         }
                     },
                     {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Número de resultados a devolver por página.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "in": "query",
                         "name": "producer",
                         "schema": {
@@ -944,8 +1286,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -991,8 +1332,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "201": {
@@ -1031,8 +1371,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -1089,8 +1428,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -1146,8 +1484,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -1184,8 +1521,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "204": {
@@ -1224,6 +1560,15 @@
                         }
                     },
                     {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Número de resultados a devolver por página.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "search",
                         "required": false,
                         "in": "query",
@@ -1249,8 +1594,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -1296,8 +1640,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "201": {
@@ -1336,8 +1679,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -1394,8 +1736,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -1451,8 +1792,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -1489,8 +1829,7 @@
                     },
                     {
                         "cookieAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "204": {
@@ -1499,10 +1838,211 @@
                 }
             }
         },
+        "/api/v1/submissions/": {
+            "get": {
+                "operationId": "v1_submissions_list",
+                "description": "Permite a usuarias autenticadas proponer obras nuevas y consultar sus propias propuestas.",
+                "parameters": [
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Qué campo usar para ordenar los resultados.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Número de resultados a devolver por página.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Un término de búsqueda.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedMediaSubmissionCreateList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "v1_submissions_create",
+                "description": "Permite a usuarias autenticadas proponer obras nuevas y consultar sus propias propuestas.",
+                "tags": [
+                    "v1"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MediaSubmissionCreate"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MediaSubmissionCreate"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MediaSubmissionCreate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MediaSubmissionCreate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/submissions/{id}/": {
+            "patch": {
+                "operationId": "v1_submissions_partial_update",
+                "description": "Permite a usuarias autenticadas proponer obras nuevas y consultar sus propias propuestas.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedMediaSubmissionCreate"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedMediaSubmissionCreate"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedMediaSubmissionCreate"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MediaSubmissionCreate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/submissions/mine/": {
+            "get": {
+                "operationId": "v1_submissions_mine_retrieve",
+                "description": "Permite a usuarias autenticadas proponer obras nuevas y consultar sus propias propuestas.",
+                "tags": [
+                    "v1"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MediaSubmissionCreate"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/tracking/": {
             "get": {
                 "operationId": "v1_tracking_list",
-                "description": "ViewSet para la gestión del progreso de visualización de contenidos.\nProtegido: Solo usuarios autenticados pueden interactuar con este endpoint.\nCada usuario únicamente consulta, crea o actualiza su propio registro de progreso.",
+                "description": "ViewSet para el diario privado del usuario (Mi CineTrack).\nCada usuario únicamente consulta, crea, edita o elimina sus propias entradas.",
                 "parameters": [
                     {
                         "in": "query",
@@ -1532,6 +2072,15 @@
                         "required": false,
                         "in": "query",
                         "description": "Un número de página dentro del conjunto de resultados paginado.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Número de resultados a devolver por página.",
                         "schema": {
                             "type": "integer"
                         }
@@ -1578,7 +2127,7 @@
             },
             "post": {
                 "operationId": "v1_tracking_create",
-                "description": "ViewSet para la gestión del progreso de visualización de contenidos.\nProtegido: Solo usuarios autenticados pueden interactuar con este endpoint.\nCada usuario únicamente consulta, crea o actualiza su propio registro de progreso.",
+                "description": "ViewSet para el diario privado del usuario (Mi CineTrack).\nCada usuario únicamente consulta, crea, edita o elimina sus propias entradas.",
                 "tags": [
                     "v1"
                 ],
@@ -1599,8 +2148,7 @@
                                 "$ref": "#/components/schemas/UserProgress"
                             }
                         }
-                    },
-                    "required": true
+                    }
                 },
                 "security": [
                     {
@@ -1627,7 +2175,7 @@
         "/api/v1/tracking/{id}/": {
             "get": {
                 "operationId": "v1_tracking_retrieve",
-                "description": "ViewSet para la gestión del progreso de visualización de contenidos.\nProtegido: Solo usuarios autenticados pueden interactuar con este endpoint.\nCada usuario únicamente consulta, crea o actualiza su propio registro de progreso.",
+                "description": "ViewSet para el diario privado del usuario (Mi CineTrack).\nCada usuario únicamente consulta, crea, edita o elimina sus propias entradas.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1665,7 +2213,7 @@
             },
             "put": {
                 "operationId": "v1_tracking_update",
-                "description": "ViewSet para la gestión del progreso de visualización de contenidos.\nProtegido: Solo usuarios autenticados pueden interactuar con este endpoint.\nCada usuario únicamente consulta, crea o actualiza su propio registro de progreso.",
+                "description": "ViewSet para el diario privado del usuario (Mi CineTrack).\nCada usuario únicamente consulta, crea, edita o elimina sus propias entradas.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1697,8 +2245,7 @@
                                 "$ref": "#/components/schemas/UserProgress"
                             }
                         }
-                    },
-                    "required": true
+                    }
                 },
                 "security": [
                     {
@@ -1723,7 +2270,7 @@
             },
             "patch": {
                 "operationId": "v1_tracking_partial_update",
-                "description": "ViewSet para la gestión del progreso de visualización de contenidos.\nProtegido: Solo usuarios autenticados pueden interactuar con este endpoint.\nCada usuario únicamente consulta, crea o actualiza su propio registro de progreso.",
+                "description": "ViewSet para el diario privado del usuario (Mi CineTrack).\nCada usuario únicamente consulta, crea, edita o elimina sus propias entradas.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1780,7 +2327,7 @@
             },
             "delete": {
                 "operationId": "v1_tracking_destroy",
-                "description": "ViewSet para la gestión del progreso de visualización de contenidos.\nProtegido: Solo usuarios autenticados pueden interactuar con este endpoint.\nCada usuario únicamente consulta, crea o actualiza su propio registro de progreso.",
+                "description": "ViewSet para el diario privado del usuario (Mi CineTrack).\nCada usuario únicamente consulta, crea, edita o elimina sus propias entradas.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1809,10 +2356,319 @@
                     }
                 }
             }
+        },
+        "/api/v1/tracking/{id}/link-media/": {
+            "post": {
+                "operationId": "v1_tracking_link_media_create",
+                "description": "Permite a la dueña vincular manualmente una entrada provisional (p.ej. rechazada) a una ficha publicada.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Un valor de entero único que identifique este Progreso de Usuario.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserProgress"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserProgress"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserProgress"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserProgress"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/tracking/{id}/reconcile/": {
+            "post": {
+                "operationId": "v1_tracking_reconcile_create",
+                "description": "Resuelve una colisión de merge de forma explícita sin perder datos ni notas.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Un valor de entero único que identifique este Progreso de Usuario.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserProgress"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserProgress"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserProgress"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserProgress"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/tracking/reconciliations/": {
+            "get": {
+                "operationId": "v1_tracking_reconciliations_retrieve",
+                "description": "Lista entradas en conflicto por merge pendientes de reconciliación privada del usuario.",
+                "tags": [
+                    "v1"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserProgress"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/tracking/verify-ownership/": {
+            "post": {
+                "operationId": "v1_tracking_verify_ownership_create",
+                "description": "Verifica en un solo llamado qué IDs de tracking pertenecen al usuario autenticado.",
+                "tags": [
+                    "v1"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserProgress"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserProgress"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserProgress"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserProgress"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
         }
     },
     "components": {
         "schemas": {
+            "AdminSubmission": {
+                "type": "object",
+                "description": "DTO sanitizado para moderación: excluye submitted_by, notas, estrellas y progreso.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Título Propuesto",
+                        "maxLength": 255
+                    },
+                    "normalized_title": {
+                        "type": "string",
+                        "title": "Título Normalizado",
+                        "maxLength": 255
+                    },
+                    "media_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/MediaTypeEnum"
+                            }
+                        ],
+                        "title": "Tipo de Medio"
+                    },
+                    "effective_poster_url": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "submitted_platform": {
+                        "type": "string",
+                        "title": "Plataforma Declarada",
+                        "maxLength": 100
+                    },
+                    "release_year": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64",
+                        "nullable": true,
+                        "title": "Año de Estreno"
+                    },
+                    "country_of_origin": {
+                        "type": "string",
+                        "title": "País de Origen",
+                        "maxLength": 100
+                    },
+                    "genres": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Genre"
+                        },
+                        "readOnly": true
+                    },
+                    "tags": {
+                        "title": "Etiquetas"
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AdminSubmissionStatusEnum"
+                            }
+                        ],
+                        "title": "Estado de Moderación"
+                    },
+                    "resolved_media": {
+                        "type": "integer",
+                        "nullable": true,
+                        "title": "Obra Canónica Resuelta"
+                    },
+                    "rejection_reason": {
+                        "type": "string",
+                        "title": "Motivo de Rechazo"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Creado el"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "title": "Actualizado el"
+                    },
+                    "resolved_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "title": "Resuelto el"
+                    }
+                },
+                "required": [
+                    "created_at",
+                    "effective_poster_url",
+                    "genres",
+                    "id",
+                    "submitted_platform",
+                    "title",
+                    "updated_at"
+                ]
+            },
+            "AdminSubmissionStatusEnum": {
+                "enum": [
+                    "PENDING",
+                    "PUBLISHED",
+                    "MERGED",
+                    "REJECTED"
+                ],
+                "type": "string",
+                "description": "* `PENDING` - Pendiente\n* `PUBLISHED` - Publicada\n* `MERGED` - Vinculada a existente\n* `REJECTED` - Rechazada"
+            },
             "CustomTokenObtainPair": {
                 "type": "object",
                 "description": "Serializer de SimpleJWT personalizado para enriquecer el access token\ncon los claims necesarios para Node.js y el Frontend:\n- user_id\n- username\n- email\n- role",
@@ -1900,6 +2756,11 @@
                         "title": "Título",
                         "maxLength": 255
                     },
+                    "normalized_title": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Título Normalizado"
+                    },
                     "media_type": {
                         "allOf": [
                             {
@@ -1911,7 +2772,24 @@
                     "release_date": {
                         "type": "string",
                         "format": "date",
+                        "nullable": true,
                         "title": "Fecha de Estreno"
+                    },
+                    "release_year": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64",
+                        "nullable": true,
+                        "title": "Año de Estreno"
+                    },
+                    "country_of_origin": {
+                        "type": "string",
+                        "title": "País de Origen",
+                        "maxLength": 100
+                    },
+                    "tags": {
+                        "title": "Etiquetas"
                     },
                     "producer": {
                         "type": "string",
@@ -1965,13 +2843,85 @@
                     }
                 },
                 "required": [
-                    "genres",
                     "genres_details",
                     "id",
-                    "producer",
-                    "release_date",
+                    "normalized_title",
                     "seasons",
-                    "synopsis",
+                    "title"
+                ]
+            },
+            "MediaSubmissionCreate": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Título Propuesto",
+                        "maxLength": 255
+                    },
+                    "media_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/MediaTypeEnum"
+                            }
+                        ],
+                        "title": "Tipo de Medio"
+                    },
+                    "poster_url": {
+                        "title": "URL de Portada Candidata",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "uri",
+                                "maxLength": 500
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
+                    },
+                    "poster_file": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "title": "Archivo de Portada Candidata"
+                    },
+                    "watch_platform": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "submitted_platform": {
+                        "type": "string"
+                    },
+                    "release_year": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64",
+                        "nullable": true,
+                        "title": "Año de Estreno"
+                    },
+                    "country_of_origin": {
+                        "type": "string",
+                        "title": "País de Origen",
+                        "maxLength": 100
+                    },
+                    "genres": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "tags": {
+                        "title": "Etiquetas"
+                    }
+                },
+                "required": [
+                    "id",
                     "title"
                 ]
             },
@@ -1982,6 +2932,37 @@
                 ],
                 "type": "string",
                 "description": "* `SERIE` - Serie\n* `PELICULA` - Película"
+            },
+            "PaginatedAdminSubmissionList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AdminSubmission"
+                        }
+                    }
+                }
             },
             "PaginatedEpisodeList": {
                 "type": "object",
@@ -2072,6 +3053,37 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/MediaItem"
+                        }
+                    }
+                }
+            },
+            "PaginatedMediaSubmissionCreateList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MediaSubmissionCreate"
                         }
                     }
                 }
@@ -2196,6 +3208,11 @@
                         "title": "Título",
                         "maxLength": 255
                     },
+                    "normalized_title": {
+                        "type": "string",
+                        "readOnly": true,
+                        "title": "Título Normalizado"
+                    },
                     "media_type": {
                         "allOf": [
                             {
@@ -2207,7 +3224,24 @@
                     "release_date": {
                         "type": "string",
                         "format": "date",
+                        "nullable": true,
                         "title": "Fecha de Estreno"
+                    },
+                    "release_year": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64",
+                        "nullable": true,
+                        "title": "Año de Estreno"
+                    },
+                    "country_of_origin": {
+                        "type": "string",
+                        "title": "País de Origen",
+                        "maxLength": 100
+                    },
+                    "tags": {
+                        "title": "Etiquetas"
                     },
                     "producer": {
                         "type": "string",
@@ -2258,6 +3292,77 @@
                             "$ref": "#/components/schemas/Season"
                         },
                         "readOnly": true
+                    }
+                }
+            },
+            "PatchedMediaSubmissionCreate": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Título Propuesto",
+                        "maxLength": 255
+                    },
+                    "media_type": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/MediaTypeEnum"
+                            }
+                        ],
+                        "title": "Tipo de Medio"
+                    },
+                    "poster_url": {
+                        "title": "URL de Portada Candidata",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "uri",
+                                "maxLength": 500
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
+                    },
+                    "poster_file": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "title": "Archivo de Portada Candidata"
+                    },
+                    "watch_platform": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "submitted_platform": {
+                        "type": "string"
+                    },
+                    "release_year": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64",
+                        "nullable": true,
+                        "title": "Año de Estreno"
+                    },
+                    "country_of_origin": {
+                        "type": "string",
+                        "title": "País de Origen",
+                        "maxLength": 100
+                    },
+                    "genres": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "tags": {
+                        "title": "Etiquetas"
                     }
                 }
             },
@@ -2319,6 +3424,7 @@
                                 "$ref": "#/components/schemas/RoleEnum"
                             }
                         ],
+                        "readOnly": true,
                         "title": "Rol en la Plataforma"
                     },
                     "bio": {
@@ -2347,7 +3453,14 @@
                     },
                     "media_item": {
                         "type": "integer",
-                        "title": "Ítem Multimedia"
+                        "nullable": true,
+                        "title": "Ítem Multimedia Canónico"
+                    },
+                    "source_submission": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Propuesta Provisional"
                     },
                     "media_item_detail": {
                         "allOf": [
@@ -2357,10 +3470,15 @@
                         ],
                         "readOnly": true
                     },
+                    "watch_platform": {
+                        "type": "string",
+                        "title": "Plataforma de Visualización",
+                        "maxLength": 100
+                    },
                     "status": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/StatusEnum"
+                                "$ref": "#/components/schemas/UserProgressStatusEnum"
                             }
                         ],
                         "title": "Estado de visualización"
@@ -2398,26 +3516,66 @@
                         "format": "int64",
                         "title": "Segundos actuales reproducidos"
                     },
+                    "episode_history": {
+                        "readOnly": true,
+                        "title": "Historial de capítulos"
+                    },
                     "is_favorite": {
                         "type": "boolean",
                         "title": "Favorito"
+                    },
+                    "needs_reconciliation": {
+                        "type": "boolean",
+                        "readOnly": true,
+                        "title": "Requiere conciliación manual"
                     },
                     "updated_at": {
                         "type": "string",
                         "format": "date-time",
                         "readOnly": true,
                         "title": "Última actualización"
+                    },
+                    "display_title": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "display_poster_url": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "display_media_type": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "display_release_year": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "display_genres": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "submission_status": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "submission_rejection_reason": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "is_published": {
+                        "type": "string",
+                        "readOnly": true
                     }
                 }
             },
             "RoleEnum": {
                 "enum": [
                     "ADMIN",
-                    "CRITIC",
                     "USER"
                 ],
                 "type": "string",
-                "description": "* `ADMIN` - Administrador\n* `CRITIC` - Crítico\n* `USER` - Usuario"
+                "description": "* `ADMIN` - Administrador\n* `USER` - Usuario"
             },
             "Season": {
                 "type": "object",
@@ -2458,16 +3616,6 @@
                     "media_item",
                     "season_number"
                 ]
-            },
-            "StatusEnum": {
-                "enum": [
-                    "PENDIENTE",
-                    "VIENDO",
-                    "VISTO",
-                    "ABANDONADO"
-                ],
-                "type": "string",
-                "description": "* `PENDIENTE` - Pendiente\n* `VIENDO` - Viendo\n* `VISTO` - Visto\n* `ABANDONADO` - Abandonado"
             },
             "TokenRefresh": {
                 "type": "object",
@@ -2510,6 +3658,7 @@
                                 "$ref": "#/components/schemas/RoleEnum"
                             }
                         ],
+                        "readOnly": true,
                         "title": "Rol en la Plataforma"
                     },
                     "bio": {
@@ -2527,6 +3676,7 @@
                     "created_at",
                     "email",
                     "id",
+                    "role",
                     "username"
                 ]
             },
@@ -2544,7 +3694,14 @@
                     },
                     "media_item": {
                         "type": "integer",
-                        "title": "Ítem Multimedia"
+                        "nullable": true,
+                        "title": "Ítem Multimedia Canónico"
+                    },
+                    "source_submission": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "nullable": true,
+                        "title": "Propuesta Provisional"
                     },
                     "media_item_detail": {
                         "allOf": [
@@ -2554,10 +3711,15 @@
                         ],
                         "readOnly": true
                     },
+                    "watch_platform": {
+                        "type": "string",
+                        "title": "Plataforma de Visualización",
+                        "maxLength": 100
+                    },
                     "status": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/StatusEnum"
+                                "$ref": "#/components/schemas/UserProgressStatusEnum"
                             }
                         ],
                         "title": "Estado de visualización"
@@ -2595,24 +3757,85 @@
                         "format": "int64",
                         "title": "Segundos actuales reproducidos"
                     },
+                    "episode_history": {
+                        "readOnly": true,
+                        "title": "Historial de capítulos"
+                    },
                     "is_favorite": {
                         "type": "boolean",
                         "title": "Favorito"
+                    },
+                    "needs_reconciliation": {
+                        "type": "boolean",
+                        "readOnly": true,
+                        "title": "Requiere conciliación manual"
                     },
                     "updated_at": {
                         "type": "string",
                         "format": "date-time",
                         "readOnly": true,
                         "title": "Última actualización"
+                    },
+                    "display_title": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "display_poster_url": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "display_media_type": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "display_release_year": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "display_genres": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "submission_status": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "submission_rejection_reason": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "is_published": {
+                        "type": "string",
+                        "readOnly": true
                     }
                 },
                 "required": [
+                    "display_genres",
+                    "display_media_type",
+                    "display_poster_url",
+                    "display_release_year",
+                    "display_title",
+                    "episode_history",
                     "id",
-                    "media_item",
+                    "is_published",
                     "media_item_detail",
+                    "needs_reconciliation",
+                    "source_submission",
+                    "submission_rejection_reason",
+                    "submission_status",
                     "updated_at",
                     "user"
                 ]
+            },
+            "UserProgressStatusEnum": {
+                "enum": [
+                    "PENDIENTE",
+                    "VIENDO",
+                    "VISTO",
+                    "ABANDONADO"
+                ],
+                "type": "string",
+                "description": "* `PENDIENTE` - Pendiente\n* `VIENDO` - Viendo\n* `VISTO` - Visto\n* `ABANDONADO` - Abandonado"
             },
             "UserRegister": {
                 "type": "object",
@@ -2646,7 +3869,7 @@
                                 "$ref": "#/components/schemas/RoleEnum"
                             }
                         ],
-                        "default": "USER",
+                        "readOnly": true,
                         "title": "Rol en la Plataforma"
                     },
                     "bio": {
@@ -2666,6 +3889,7 @@
                     "id",
                     "password",
                     "password_confirm",
+                    "role",
                     "username"
                 ]
             }
