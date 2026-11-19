@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Badge, Button, Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
@@ -8,20 +9,23 @@ const MediaCard = ({
   isTrackingLoading = false,
   onTrackMedia,
 }) => {
+  const [imgError, setImgError] = useState(false);
   const isSerie = item.media_type === 'SERIE';
   const synopsisText = item.synopsis || 'Sin sinopsis disponible.';
   const truncatedSynopsis =
     synopsisText.length > 130 ? `${synopsisText.slice(0, 130)}...` : synopsisText;
+  const showPoster = Boolean(item.poster_image) && !imgError;
 
   return (
     <Card className="h-100 ct-media-card">
-      {item.poster_image ? (
+      {showPoster ? (
         <div className="ct-poster-frame">
           <Card.Img
             variant="top"
             src={item.poster_image}
             alt={`Poster de ${item.title}`}
             className="ct-poster-img"
+            onError={() => setImgError(true)}
           />
         </div>
       ) : (

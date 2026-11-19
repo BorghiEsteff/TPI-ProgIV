@@ -25,6 +25,16 @@
   --shadow-card: 0 4px 16px rgba(24, 8, 40, 0.06);
   --shadow-card-hover: 0 8px 24px rgba(91, 14, 166, 0.12);
 
+  /* Filter Bar & Poster Contour Tokens */
+  --filter-surface: #EDE2F7;
+  --filter-border: #D3B9EC;
+  --filter-shadow: 0 4px 16px rgba(91, 14, 166, 0.08);
+  --poster-contour-border: rgba(147, 95, 211, 0.42);
+  --poster-contour-glow: 0 0 14px rgba(91, 14, 166, 0.16);
+  --poster-contour-inset: inset 0 0 12px rgba(174, 30, 196, 0.08);
+  --poster-contour-border-hover: rgba(174, 30, 196, 0.62);
+  --poster-contour-glow-hover: 0 0 18px rgba(174, 30, 196, 0.24);
+
   /* Semantic Accents */
   --accent-coral: #F26D85;
   --accent-gold: #F5C842;

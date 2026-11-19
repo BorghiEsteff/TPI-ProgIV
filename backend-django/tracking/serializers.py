@@ -30,6 +30,7 @@ class UserProgressSerializer(serializers.ModelSerializer):
             "current_season_number",
             "current_episode_number",
             "current_seconds",
+            "episode_history",
             "is_favorite",
             "needs_reconciliation",
             "updated_at",
@@ -46,6 +47,7 @@ class UserProgressSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "source_submission",
+            "episode_history",
             "needs_reconciliation",
             "updated_at",
         ]
@@ -131,7 +133,37 @@ class UserProgressSerializer(serializers.ModelSerializer):
                 attrs["started_at"] = timezone.now()
 
         if status_value == UserProgress.WatchStatus.VISTO:
+            if not attrs.get("started_at") and (not instance or not instance.started_at):
+                attrs["started_at"] = timezone.now()
             if not attrs.get("finished_at") and (not instance or not instance.finished_at):
                 attrs["finished_at"] = timezone.now()
 
         return attrs
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        media_type = (
+            instance.media_item.media_type
+            if instance.media_item
+            else (instance.source_submission.media_type if instance.source_submission else "")
+        )
+        if media_type == "SERIE" and instance.status == UserProgress.WatchStatus.VISTO:
+            history = list(instance.episode_history or [])
+            season = int(instance.current_season_number or 1)
+            episode = int(instance.current_episode_number or 1)
+            entry = {
+                "season": season,
+                "episode": episode,
+                "status": "VISTO",
+                "seconds": int(instance.current_seconds or 0),
+                "watched_at": timezone.now().isoformat(),
+            }
+            history = [
+                h for h in history
+                if not (int(h.get("season", 0)) == season and int(h.get("episode", 0)) == episode)
+            ]
+            history.append(entry)
+            history.sort(key=lambda h: (int(h.get("season", 1)), int(h.get("episode", 1))))
+            instance.episode_history = history
+            instance.save(update_fields=["episode_history", "updated_at"])
+        return instance

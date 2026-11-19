@@ -37,14 +37,28 @@ export const tokenStorage = {
 const extractErrorMessage = (data, fallbackMessage) => {
   if (!data) return fallbackMessage;
   if (typeof data === 'string') return data;
-  if (data.error?.message) return data.error.message;
-  if (data.detail) return data.detail;
-  if (data.message) return data.message;
+  if (Array.isArray(data) && data.length > 0) {
+    return extractErrorMessage(data[0], fallbackMessage);
+  }
+  if (typeof data === 'object') {
+    if (typeof data.error?.message === 'string') return data.error.message;
+    if (typeof data.detail === 'string') return data.detail;
+    if (data.detail && typeof data.detail === 'object') {
+      return extractErrorMessage(data.detail, fallbackMessage);
+    }
+    if (typeof data.message === 'string') return data.message;
 
-  // Manejo de errores por campo de Django REST Framework
-  const firstKey = Object.keys(data)[0];
-  if (firstKey && Array.isArray(data[firstKey])) {
-    return `${firstKey}: ${data[firstKey][0]}`;
+    // Manejo de errores por campo de Django REST Framework
+    const firstKey = Object.keys(data).find((k) => k !== 'status_code' && k !== 'error');
+    if (firstKey) {
+      const val = data[firstKey];
+      if (Array.isArray(val) && val.length > 0) {
+        return `${firstKey}: ${extractErrorMessage(val[0], fallbackMessage)}`;
+      }
+      if (typeof val === 'string') {
+        return `${firstKey}: ${val}`;
+      }
+    }
   }
   return fallbackMessage;
 };

@@ -34,7 +34,7 @@ const RegisterPage = () => {
     setFieldErrors({});
 
     if (formData.password !== formData.password_confirm) {
-      setFieldErrors({ password_confirm: ['Las contrasenas no coinciden.'] });
+      setFieldErrors({ password_confirm: ['Las contraseñas no coinciden.'] });
       return;
     }
 
@@ -119,7 +119,7 @@ const RegisterPage = () => {
                 <Row>
                   <Col md={6}>
                     <Form.Group className="mb-3" controlId="registerPassword">
-                      <Form.Label>Contrasena</Form.Label>
+                      <Form.Label>Contraseña</Form.Label>
                       <Form.Control
                         type="password"
                         name="password"
@@ -136,7 +136,7 @@ const RegisterPage = () => {
                   </Col>
                   <Col md={6}>
                     <Form.Group className="mb-3" controlId="registerPasswordConfirm">
-                      <Form.Label>Confirmar contrasena</Form.Label>
+                      <Form.Label>Confirmar contraseña</Form.Label>
                       <Form.Control
                         type="password"
                         name="password_confirm"

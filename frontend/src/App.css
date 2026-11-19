@@ -96,10 +96,11 @@
 
 /* ── Barra de filtros y Cards (Light Mode) ──────────────────────────────────── */
 .ct-filter-bar {
-  background-color: var(--bg-secondary) !important;
+  background-color: var(--filter-surface) !important;
   color: var(--text-primary) !important;
-  border: 1px solid var(--border-subtle) !important;
+  border: 1px solid var(--filter-border) !important;
   border-radius: 12px !important;
+  box-shadow: var(--filter-shadow);
 }
 
 .card {
@@ -128,15 +129,20 @@
   box-shadow: var(--shadow-card-hover) !important;
 }
 
-/* ── Portadas 2:3 ───────────────────────────────────────────────────────────── */
-.ct-poster-frame {
+/* ── Portadas 2:3 con contorno difuminado violeta-orquídea ──────────────────── */
+.ct-poster-frame,
+.ct-poster-fallback {
+  position: relative;
+  isolation: isolate;
   aspect-ratio: 2 / 3;
   width: 100%;
-  overflow: hidden;
-  background-color: var(--bg-elevated);
-  border-bottom: 1px solid var(--border-subtle);
   border-top-left-radius: 11px;
   border-top-right-radius: 11px;
+}
+
+.ct-poster-frame {
+  overflow: hidden;
+  background-color: var(--bg-elevated);
 }
 
 .ct-poster-img {
@@ -147,8 +153,7 @@
 }
 
 .ct-poster-fallback {
-  aspect-ratio: 2 / 3;
-  width: 100%;
+  overflow: hidden;
   background: linear-gradient(160deg, var(--bg-elevated) 0%, var(--brand-soft) 100%);
   color: var(--brand-primary);
   display: flex;
@@ -157,9 +162,30 @@
   justify-content: center;
   padding: 1rem;
   text-align: center;
-  border-bottom: 1px solid var(--border-subtle);
-  border-top-left-radius: 11px;
-  border-top-right-radius: 11px;
+}
+
+.ct-poster-frame::after,
+.ct-poster-fallback::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--poster-contour-border);
+  box-shadow: var(--poster-contour-glow), var(--poster-contour-inset);
+  pointer-events: none;
+  z-index: 2;
+  transition: border-color 160ms ease-out, box-shadow 160ms ease-out;
+}
+
+.ct-media-card:hover .ct-poster-frame::after,
+.ct-media-card:focus-within .ct-poster-frame::after,
+.ct-media-card:hover .ct-poster-fallback::after,
+.ct-media-card:focus-within .ct-poster-fallback::after,
+.ct-poster-frame:hover::after,
+.ct-poster-frame:focus-within::after,
+.ct-poster-fallback:hover::after {
+  border-color: var(--poster-contour-border-hover);
+  box-shadow: var(--poster-contour-glow-hover), var(--poster-contour-inset);
 }
 
 /* ── Badges de tipo, género y estados ───────────────────────────────────────── */

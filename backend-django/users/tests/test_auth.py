@@ -117,3 +117,52 @@ class TestAuthAndJWTSecurity:
         assert create_res.status_code == status.HTTP_201_CREATED
         assert create_res.json()["user"] == self.user.id
 
+    def test_case_insensitive_email_login_admin_role_refresh_and_inactive_user(self):
+        # Login con email en mayúsculas y espacios
+        upper_res = self.client.post(
+            self.login_url,
+            {"email": " TESTER@CINETRACK.LOCAL ", "password": self.password},
+            format="json",
+        )
+        assert upper_res.status_code == status.HTTP_200_OK
+        assert upper_res.json()["user"]["role"] == User.Role.USER
+
+        # Refresh token funciona
+        refresh_res = self.client.post(
+            self.refresh_url,
+            {"refresh": upper_res.json()["refresh"]},
+            format="json",
+        )
+        assert refresh_res.status_code == status.HTTP_200_OK
+        assert "access" in refresh_res.json()
+
+        # Login ADMIN devuelve role=ADMIN en JWT y /auth/me/
+        admin_user = User.objects.create_user(
+            email="admin_tester@cinetrack.local",
+            username="admin_tester",
+            password=self.password,
+            role=User.Role.ADMIN,
+            is_staff=True,
+        )
+        admin_login = self.client.post(
+            self.login_url,
+            {"email": "Admin_Tester@CineTrack.Local", "password": self.password},
+            format="json",
+        )
+        assert admin_login.status_code == status.HTTP_200_OK
+        assert admin_login.json()["user"]["role"] == User.Role.ADMIN
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {admin_login.json()['access']}")
+        me_res = self.client.get("/api/v1/auth/me/")
+        assert me_res.status_code == status.HTTP_200_OK
+        assert me_res.json()["role"] == User.Role.ADMIN
+
+        # Usuario inactivo rechazado con 401
+        admin_user.is_active = False
+        admin_user.save(update_fields=["is_active"])
+        inactive_res = self.client.post(
+            self.login_url,
+            {"email": "admin_tester@cinetrack.local", "password": self.password},
+            format="json",
+        )
+        assert inactive_res.status_code == status.HTTP_401_UNAUTHORIZED
+

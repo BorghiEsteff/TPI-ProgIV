@@ -8,7 +8,8 @@ const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const fromPath = location.state?.from?.pathname || '/';
+  const rawFrom = location.state?.from?.pathname || '/';
+  const fromPath = rawFrom.startsWith('/') && !rawFrom.startsWith('//') ? rawFrom : '/';
 
   const [formData, setFormData] = useState({
     email: '',
@@ -27,17 +28,19 @@ const LoginPage = () => {
     setError(null);
 
     if (!formData.email.trim() || !formData.password) {
-      setError('Debe ingresar su correo electronico y contrasena.');
+      setError('Debe ingresar su correo electrónico y contraseña.');
       return;
     }
 
     setSubmitting(true);
     try {
-      await login({
-        email: formData.email.trim(),
+      const session = await login({
+        email: formData.email.trim().toLowerCase(),
         password: formData.password,
       });
-      navigate(fromPath, { replace: true });
+      const loggedRole = String(session?.user?.role || '').toUpperCase();
+      const targetPath = fromPath.startsWith('/admin') && loggedRole !== 'ADMIN' ? '/' : fromPath;
+      navigate(targetPath, { replace: true });
     } catch (err) {
       setError(err);
     } finally {
@@ -51,7 +54,7 @@ const LoginPage = () => {
         <Col md={6} lg={5}>
           <Card className="shadow-sm">
             <Card.Body className="p-4">
-              <h2 className="h4 mb-3 text-center">Iniciar Sesion en CineTrack</h2>
+              <h1 className="h4 mb-3 text-center">Iniciar Sesion en CineTrack</h1>
               <p className="text-muted small text-center mb-4">
                 Ingrese sus credenciales para acceder a su diario privado de series y peliculas.
               </p>
@@ -73,11 +76,11 @@ const LoginPage = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-4" controlId="loginPassword">
-                  <Form.Label>Contrasena</Form.Label>
+                  <Form.Label>Contraseña</Form.Label>
                   <Form.Control
                     type="password"
                     name="password"
-                    placeholder="Ingrese su contrasena"
+                    placeholder="Ingrese su contraseña"
                     value={formData.password}
                     onChange={handleChange}
                     disabled={submitting}

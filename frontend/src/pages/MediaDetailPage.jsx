@@ -14,6 +14,7 @@ const MediaDetailPage = () => {
   const { isAuthenticated, role } = useAuth();
 
   const [media, setMedia] = useState(null);
+  const [imgError, setImgError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isTracked, setIsTracked] = useState(false);
@@ -23,6 +24,7 @@ const MediaDetailPage = () => {
   const loadMedia = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setImgError(false);
     try {
       const { data } = await catalogService.getMediaDetail(id);
       setMedia(data);
@@ -117,12 +119,13 @@ const MediaDetailPage = () => {
         <Card.Body className="p-4">
           <Row className="g-4">
             <Col md={4} lg={3}>
-              {media.poster_image ? (
+              {media.poster_image && !imgError ? (
                 <div className="ct-poster-frame rounded shadow-sm">
                   <img
                     src={media.poster_image}
                     alt={`Portada de ${media.title}`}
                     className="ct-poster-img"
+                    onError={() => setImgError(true)}
                   />
                 </div>
               ) : (
@@ -138,9 +141,16 @@ const MediaDetailPage = () => {
             <Col md={8} lg={9}>
               <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                 <h1 className="h2 mb-0">{media.title}</h1>
-                <Badge bg="" className={media.media_type === 'SERIE' ? 'ct-badge-serie' : 'ct-badge-pelicula'}>
-                  {media.media_type === 'SERIE' ? 'Serie' : 'Película'}
-                </Badge>
+                <div className="d-flex gap-2 align-items-center">
+                  {media.is_active === false && (
+                    <Badge bg="warning" text="dark">
+                      Oculta del catálogo público
+                    </Badge>
+                  )}
+                  <Badge bg="" className={media.media_type === 'SERIE' ? 'ct-badge-serie' : 'ct-badge-pelicula'}>
+                    {media.media_type === 'SERIE' ? 'Serie' : 'Película'}
+                  </Badge>
+                </div>
               </div>
 
               <div className="text-muted small mb-3 tabular-nums">

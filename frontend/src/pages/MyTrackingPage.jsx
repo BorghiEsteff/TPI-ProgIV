@@ -58,6 +58,7 @@ const MyTrackingPage = () => {
   const [feedback, setFeedback] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [draftChapterById, setDraftChapterById] = useState({});
 
   const loadTracking = useCallback(async (targetPage = page) => {
     setLoading(true);
@@ -473,7 +474,21 @@ const MyTrackingPage = () => {
                                 size="sm"
                                 type="number"
                                 min={1}
-                                defaultValue={item.current_season_number || 1}
+                                value={
+                                  draftChapterById[item.id]?.season ??
+                                  (item.current_season_number || 1)
+                                }
+                                onChange={(e) =>
+                                  setDraftChapterById((prev) => ({
+                                    ...prev,
+                                    [item.id]: {
+                                      season: e.target.value,
+                                      episode:
+                                        prev[item.id]?.episode ??
+                                        (item.current_episode_number || 1),
+                                    },
+                                  }))
+                                }
                                 onBlur={(e) => {
                                   const num = Math.max(1, Number(e.target.value) || 1);
                                   if (num !== item.current_season_number) {
@@ -488,7 +503,21 @@ const MyTrackingPage = () => {
                                 size="sm"
                                 type="number"
                                 min={1}
-                                defaultValue={item.current_episode_number || 1}
+                                value={
+                                  draftChapterById[item.id]?.episode ??
+                                  (item.current_episode_number || 1)
+                                }
+                                onChange={(e) =>
+                                  setDraftChapterById((prev) => ({
+                                    ...prev,
+                                    [item.id]: {
+                                      season:
+                                        prev[item.id]?.season ??
+                                        (item.current_season_number || 1),
+                                      episode: e.target.value,
+                                    },
+                                  }))
+                                }
                                 onBlur={(e) => {
                                   const num = Math.max(1, Number(e.target.value) || 1);
                                   if (num !== item.current_episode_number) {
@@ -503,16 +532,45 @@ const MyTrackingPage = () => {
 
                       <ProgressTrackerBar
                         currentSeconds={item.current_seconds || 0}
-                        durationMinutes={durationMinutes}
-                        isSerie={isSerie}
-                        seasonNumber={item.current_season_number}
-                        episodeNumber={item.current_episode_number}
+                        totalDurationMinutes={durationMinutes}
+                        status={item.status}
+                        startedAt={item.started_at}
+                        finishedAt={item.finished_at}
                       />
+
+                      {isSerie && (
+                        <div className="mt-2 pt-2 border-top d-flex flex-wrap align-items-center gap-2">
+                          <span className="small text-muted fw-semibold">
+                            Historial de capítulos vistos:
+                          </span>
+                          {Array.isArray(item.episode_history) && item.episode_history.length > 0 ? (
+                            item.episode_history.map((ep) => (
+                              <Badge
+                                key={`${ep.season}-${ep.episode}`}
+                                bg=""
+                                className="ct-status-badge ct-status-visto tabular-nums"
+                              >
+                                T{ep.season} · E{ep.episode}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="small text-muted">
+                              Guardá un capítulo con estado VISTO para registrarlo en el historial.
+                            </span>
+                          )}
+                        </div>
+                      )}
 
                       <div className="mt-2">
                         <SecondsInputControl
                           progress={item}
                           isSaving={savingId === item.id}
+                          selectedSeason={
+                            draftChapterById[item.id]?.season ?? item.current_season_number
+                          }
+                          selectedEpisode={
+                            draftChapterById[item.id]?.episode ?? item.current_episode_number
+                          }
                           onUpdateProgress={handleUpdateProgress}
                           onDeleteProgress={setDeleteTarget}
                         />

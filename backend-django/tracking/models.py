@@ -59,6 +59,9 @@ class UserProgress(models.Model):
     current_seconds = models.PositiveIntegerField(
         default=0, verbose_name="Segundos actuales reproducidos"
     )
+    episode_history = models.JSONField(
+        default=list, blank=True, verbose_name="Historial de capítulos"
+    )
     is_favorite = models.BooleanField(default=False, db_index=True, verbose_name="Favorito")
     needs_reconciliation = models.BooleanField(
         default=False, db_index=True, verbose_name="Requiere conciliación manual"

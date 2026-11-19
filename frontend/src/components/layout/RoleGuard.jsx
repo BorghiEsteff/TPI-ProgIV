@@ -1,8 +1,13 @@
 import { Alert } from 'react-bootstrap';
 import { useAuth } from '../../hooks/useAuth';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 const RoleGuard = ({ allowedRoles = [], children, fallback = 'hide' }) => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, loadingAuth, role } = useAuth();
+
+  if (loadingAuth) {
+    return <LoadingSpinner message="Verificando permisos..." />;
+  }
 
   const normalizedAllowed = allowedRoles.map((r) => String(r).toUpperCase());
   const hasPermission = isAuthenticated && role && normalizedAllowed.includes(role);
@@ -23,4 +28,3 @@ const RoleGuard = ({ allowedRoles = [], children, fallback = 'hide' }) => {
 };
 
 export default RoleGuard;
-

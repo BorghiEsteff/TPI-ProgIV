@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => authService.getStoredToken());
   const [user, setUser] = useState(() => authService.getStoredUser());
   const [loadingAuth, setLoadingAuth] = useState(() => Boolean(authService.getStoredToken()));
+  const [justLoggedOut, setJustLoggedOut] = useState(false);
 
   const clearAuthState = useCallback(() => {
     authService.logout();
@@ -66,14 +67,10 @@ export const AuthProvider = ({ children }) => {
   }, [clearAuthState]);
 
   const login = useCallback(async (credentials) => {
+    setJustLoggedOut(false);
     const data = await authService.login(credentials);
     setToken(data.access);
-    if (data.user) {
-      setUser(data.user);
-    } else {
-      const profile = await authService.getProfile();
-      setUser(profile);
-    }
+    setUser(data.user);
     return data;
   }, []);
 
@@ -82,11 +79,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
+    setJustLoggedOut(true);
     clearAuthState();
   }, [clearAuthState]);
 
   const role = user?.role ? String(user.role).toUpperCase() : null;
-  const isAuthenticated = Boolean(token);
+  const isAuthenticated = Boolean(token && user);
 
   const value = useMemo(
     () => ({
@@ -95,12 +93,13 @@ export const AuthProvider = ({ children }) => {
       token,
       isAuthenticated,
       loadingAuth,
+      justLoggedOut,
       login,
       register,
       logout,
       refreshProfile,
     }),
-    [user, role, token, isAuthenticated, loadingAuth, login, register, logout, refreshProfile]
+    [user, role, token, isAuthenticated, loadingAuth, justLoggedOut, login, register, logout, refreshProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

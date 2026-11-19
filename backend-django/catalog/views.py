@@ -88,9 +88,9 @@ class MediaItemViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = MediaItem.objects.prefetch_related("genres", "seasons__episodes")
-        if (
-            is_admin_user(getattr(self.request, "user", None))
-            and self.request.query_params.get("include_inactive") == "true"
+        if is_admin_user(getattr(self.request, "user", None)) and (
+            self.request.query_params.get("include_inactive") == "true"
+            or self.action in ("retrieve", "update", "partial_update", "destroy")
         ):
             return qs.all()
         return qs.filter(is_active=True)

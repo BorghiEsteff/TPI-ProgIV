@@ -5,11 +5,14 @@ import { formatSecondsToHHMMSS, parseHHMMSSToSeconds } from '../../utils/timeFor
 const SecondsInputControl = ({
   progress,
   isSaving = false,
+  selectedSeason = null,
+  selectedEpisode = null,
   onUpdateProgress,
   onDeleteProgress,
 }) => {
   const media = progress.media_item_detail || {};
-  const isSerie = media.media_type === 'SERIE';
+  const isSerie =
+    media.media_type === 'SERIE' || progress.display_media_type === 'SERIE';
 
   const [status, setStatus] = useState(progress.status || 'PENDIENTE');
   const [timeInput, setTimeInput] = useState(
@@ -53,8 +56,8 @@ const SecondsInputControl = ({
     };
 
     if (isSerie) {
-      payload.current_season_number = Math.max(1, Number(seasonNumber) || 1);
-      payload.current_episode_number = Math.max(1, Number(episodeNumber) || 1);
+      payload.current_season_number = Math.max(1, Number(selectedSeason ?? seasonNumber) || 1);
+      payload.current_episode_number = Math.max(1, Number(selectedEpisode ?? episodeNumber) || 1);
     }
 
     onUpdateProgress(progress.id, payload);

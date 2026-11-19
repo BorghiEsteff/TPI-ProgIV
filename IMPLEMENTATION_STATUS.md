@@ -17,6 +17,7 @@
 | `Playwright E2E` | `npx playwright test --project=chromium-desktop` y `--project=chromium-mobile` | **18/18 desktop** + **18/18 mobile** | Incluye `GEN-E2E-01..09`, `VIS-01..16` y caso Matrix |
 | `Impeccable` | `impeccable.cmd detect --json http://localhost:5173/` | **0 hallazgos (`[]`)** | `PRODUCT.md` y `DESIGN.md` documentados |
 | `PostgreSQL / Groq` | — | **BLOCKED / NOT_RUN** | Sin Docker/PG local ni `GROQ_API_KEY` configurados |
+| `Refinamiento Visual 2026-11-16` | [QA_REFINAMIENTO_FILTROS_POSTERS_2026-11-16.md](./docs/qa/QA_REFINAMIENTO_FILTROS_POSTERS_2026-11-16.md) | **PASS** (`lint`, Vitest 16/16, `build`, `impeccable` 0 hallazgos) | Barra de filtros `#EDE2F7` + contorno violeta-orquídea en portadas `2:3` |
 
 ---
 

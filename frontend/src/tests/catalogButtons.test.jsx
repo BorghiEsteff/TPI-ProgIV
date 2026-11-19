@@ -103,6 +103,7 @@ describe('Botones e interacciones de Catalogo', () => {
       'href',
       '/media/42'
     );
+    expect(document.querySelector('.ct-poster-fallback')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Sala en Vivo' })
     ).not.toBeInTheDocument();

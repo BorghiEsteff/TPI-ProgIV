@@ -14,8 +14,8 @@ test.describe('Autenticación, roles y RBAC (E2E-03..E2E-06)', () => {
 
     await page.getByLabel(/Nombre de usuario/i).fill(`user_${unique}`);
     await page.getByLabel(/Correo electr/i).fill(email);
-    await page.getByLabel(/^Contrasena$/i).fill('QaUserPass123!');
-    await page.getByLabel(/Confirmar contrasena/i).fill('QaUserPass123!');
+    await page.getByLabel(/^Contrase[nñ]a$/i).fill('QaUserPass123!');
+    await page.getByLabel(/Confirmar contrase[nñ]a/i).fill('QaUserPass123!');
     await page.getByRole('button', { name: /Crear Cuenta/i }).click();
 
     await expect(page.getByText(/Cuenta creada correctamente/i)).toBeVisible();

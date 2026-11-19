@@ -12,8 +12,8 @@ const AppNavbar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    navigate('/login', { replace: true, state: null });
     logout();
-    navigate('/login', { replace: true });
   };
 
   return (
@@ -55,9 +55,9 @@ const AppNavbar = () => {
             {isAuthenticated ? (
               <>
                 <span className="text-light small me-1">
-                  {user?.username || 'Usuario'}{' '}
-                  {role && (
-                    <Badge bg={ROLE_VARIANT[role] || 'secondary'} className="ms-1">
+                  {user?.username || 'Usuario'}
+                  {role === 'ADMIN' && (
+                    <Badge bg={ROLE_VARIANT[role] || 'danger'} className="ms-2">
                       {role}
                     </Badge>
                   )}

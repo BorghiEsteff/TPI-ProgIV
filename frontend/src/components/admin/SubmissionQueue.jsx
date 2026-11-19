@@ -60,7 +60,12 @@ const SubmissionQueue = ({
                         </Badge>
                         {sub.release_year && <Badge bg="secondary">{sub.release_year}</Badge>}
                         <Badge bg={sub.status === 'PENDING' ? 'warning' : 'secondary'} text={sub.status === 'PENDING' ? 'dark' : 'light'}>
-                          {sub.status}
+                          {{
+                            PENDING: 'Pendiente',
+                            PUBLISHED: 'Publicada',
+                            MERGED: 'Vinculada',
+                            REJECTED: 'Rechazada',
+                          }[sub.status] || sub.status}
                         </Badge>
                         {Array.isArray(sub.genres) &&
                           sub.genres.map((g) => (

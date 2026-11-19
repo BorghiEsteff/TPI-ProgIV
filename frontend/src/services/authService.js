@@ -2,13 +2,21 @@ import djangoClient from '../api/djangoClient';
 import { tokenStorage } from '../api/interceptors';
 
 export const login = async (credentials) => {
+  tokenStorage.clearSession();
   const response = await djangoClient.post('/auth/login/', credentials);
-  const { access, refresh, user } = response.data;
-  tokenStorage.setTokens({ access, refresh });
-  if (user) {
-    tokenStorage.setUser(user);
+  const { access, refresh, user } = response.data || {};
+  if (!access || !refresh) {
+    throw { status: 401, message: 'Respuesta de autenticación incompleta.', details: null };
   }
-  return response.data;
+  tokenStorage.setTokens({ access, refresh });
+  try {
+    const resolvedUser = user || (await getProfile());
+    tokenStorage.setUser(resolvedUser);
+    return { ...response.data, user: resolvedUser };
+  } catch (err) {
+    tokenStorage.clearSession();
+    throw err;
+  }
 };
 
 export const register = async (payload) => {

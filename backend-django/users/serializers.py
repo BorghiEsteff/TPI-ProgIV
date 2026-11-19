@@ -35,6 +35,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
+        raw_email = (attrs.get(self.username_field) or "").strip()
+        if raw_email:
+            matched_user = User.objects.filter(email__iexact=raw_email).only(self.username_field).first()
+            attrs[self.username_field] = matched_user.email if matched_user else raw_email.lower()
         data = super().validate(attrs)
         role = getattr(self.user, "role", "USER")
         if role == "CRITIC":

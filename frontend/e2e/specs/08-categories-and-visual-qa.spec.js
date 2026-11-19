@@ -122,15 +122,42 @@ test.describe('Categorías, paginación, reconciliación y QA visual Impeccable 
       expect(overflow, `Overflow horizontal en ${vp.width}x${vp.height}`).toBe(false);
     }
 
-    // Verificar relación 2:3 aproximada en poster-frame / fallback
+    // Verificar relación 2:3 aproximada en poster-frame / fallback, contorno violeta y barra de filtros
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/', { waitUntil: 'networkidle' });
-    const ratio = await page.locator('.ct-poster-frame, .ct-poster-fallback').first().evaluate((el) => {
-      const rect = el.getBoundingClientRect();
-      return rect.height > 0 ? rect.width / rect.height : 0;
+
+    // Barra de filtros: selector técnico oculto por defecto y fondo lavanda #EDE2F7
+    await expect(page.getByText(/Modo de consulta/i)).toHaveCount(0);
+    const filterStyles = await page.locator('.ct-filter-bar').evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { bg: cs.backgroundColor, borderWidth: cs.borderTopWidth };
     });
-    expect(ratio).toBeGreaterThan(0.6);
-    expect(ratio).toBeLessThan(0.75);
+    expect(filterStyles.bg).toBe('rgb(237, 226, 247)');
+    expect(filterStyles.borderWidth).toBe('1px');
+
+    const posterCheck = await page.locator('.ct-poster-frame, .ct-poster-fallback').first().evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      const after = getComputedStyle(el, '::after');
+      const img = el.querySelector('img');
+      return {
+        ratio: rect.height > 0 ? rect.width / rect.height : 0,
+        afterPointerEvents: after.pointerEvents,
+        afterBorderWidth: after.borderTopWidth,
+        imgFilter: img ? getComputedStyle(img).filter : 'none',
+      };
+    });
+    expect(posterCheck.ratio).toBeGreaterThan(0.6);
+    expect(posterCheck.ratio).toBeLessThan(0.75);
+    expect(posterCheck.afterPointerEvents).toBe('none');
+    expect(posterCheck.afterBorderWidth).not.toBe('0px');
+    expect(posterCheck.imgFilter).toBe('none');
+
+    // Verificar prefers-reduced-motion sin overflow
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const overflowReduced = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 2,
+    );
+    expect(overflowReduced).toBe(false);
 
     expect(pageErrors).toEqual([]);
   });

@@ -139,13 +139,18 @@ const AdminSubmissionsPage = () => {
         </div>
 
         <ButtonGroup size="sm">
-          {['PENDING', 'PUBLISHED', 'MERGED', 'REJECTED'].map((st) => (
+          {[
+            { value: 'PENDING', label: 'Pendientes' },
+            { value: 'PUBLISHED', label: 'Publicadas' },
+            { value: 'MERGED', label: 'Vinculadas' },
+            { value: 'REJECTED', label: 'Rechazadas' },
+          ].map(({ value, label }) => (
             <Button
-              key={st}
-              variant={statusFilter === st ? 'dark' : 'outline-secondary'}
-              onClick={() => setStatusFilter(st)}
+              key={value}
+              variant={statusFilter === value ? 'primary' : 'outline-secondary'}
+              onClick={() => setStatusFilter(value)}
             >
-              {st}
+              {label}
             </Button>
           ))}
         </ButtonGroup>
