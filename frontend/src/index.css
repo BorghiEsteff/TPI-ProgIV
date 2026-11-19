@@ -1,0 +1,95 @@
+:root {
+  /* Light Editorial Surfaces */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #FAF7FD;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F4ECF9;
+
+  /* Dark Plum Chrome (Navbar & Footer only) */
+  --bg-chrome-dark: #180828;
+
+  /* High-Contrast Typography on Light */
+  --text-primary: #180828;
+  --text-secondary: #4A3560;
+  --text-muted: #7B6394;
+
+  /* Brand & Violet/Orchid Accents */
+  --brand-primary: #5B0EA6;
+  --brand-primary-hover: #4B0A8A;
+  --brand-soft: #EDE2F7;
+  --brand-accent: #AE1EC4;
+
+  /* Borders & Subtle Shadows */
+  --border-subtle: #E6D9F2;
+  --border-focus: #935FD3;
+  --shadow-card: 0 4px 16px rgba(24, 8, 40, 0.06);
+  --shadow-card-hover: 0 8px 24px rgba(91, 14, 166, 0.12);
+
+  /* Filter Bar & Poster Contour Tokens */
+  --filter-surface: #EDE2F7;
+  --filter-border: #D3B9EC;
+  --filter-shadow: 0 4px 16px rgba(91, 14, 166, 0.08);
+  --poster-contour-border: rgba(147, 95, 211, 0.42);
+  --poster-contour-glow: 0 0 14px rgba(91, 14, 166, 0.16);
+  --poster-contour-inset: inset 0 0 12px rgba(174, 30, 196, 0.08);
+  --poster-contour-border-hover: rgba(174, 30, 196, 0.62);
+  --poster-contour-glow-hover: 0 0 18px rgba(174, 30, 196, 0.24);
+
+  /* Semantic Accents */
+  --accent-coral: #F26D85;
+  --accent-gold: #F5C842;
+  --accent-teal: #38D9C0;
+  --accent-sky: #4DB8F5;
+
+  --ct-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Bootstrap 5 Light Theme Overrides */
+  --bs-body-bg: var(--bg-primary);
+  --bs-body-color: var(--text-primary);
+  --bs-secondary-color: var(--text-secondary);
+  --bs-tertiary-bg: var(--bg-secondary);
+  --bs-border-color: var(--border-subtle);
+  --bs-primary: #5B0EA6;
+  --bs-primary-rgb: 91, 14, 166;
+  --bs-link-color: #5B0EA6;
+  --bs-link-hover-color: #4B0A8A;
+
+  font-family: var(--ct-sans);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: var(--brand-soft);
+  color: var(--text-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

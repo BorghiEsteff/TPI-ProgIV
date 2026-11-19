@@ -70,10 +70,14 @@ class UserProgressType(DjangoObjectType):
         )
 
 
+from django.db.models import Q
+
 class Query(graphene.ObjectType):
     all_media_items = graphene.List(
         MediaItemType,
         media_type=graphene.String(required=False),
+        genre_id=graphene.Int(required=False),
+        search=graphene.String(required=False),
         description="Lista de películas y series con optimización prefetch de géneros y temporadas",
     )
     media_item_by_id = graphene.Field(
@@ -86,17 +90,28 @@ class Query(graphene.ObjectType):
         description="Progreso del usuario autenticado (requiere contexto de usuario)",
     )
 
-    def resolve_all_media_items(self, info, media_type=None):
+    def resolve_all_media_items(self, info, media_type=None, genre_id=None, search=None):
         qs = MediaItem.objects.prefetch_related("genres", "seasons__episodes").filter(is_active=True)
         if media_type:
             qs = qs.filter(media_type=media_type.upper())
+        if genre_id is not None:
+            qs = qs.filter(genres__id=genre_id).distinct()
+        if search:
+            term = search.strip()
+            if term:
+                qs = qs.filter(
+                    Q(title__icontains=term)
+                    | Q(synopsis__icontains=term)
+                    | Q(producer__icontains=term)
+                    | Q(country_of_origin__icontains=term)
+                )
         return qs
 
     def resolve_media_item_by_id(self, info, id):
         try:
             return (
                 MediaItem.objects.prefetch_related("genres", "seasons__episodes")
-                .get(pk=id)
+                .get(pk=id, is_active=True)
             )
         except MediaItem.DoesNotExist:
             return None
