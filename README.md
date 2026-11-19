@@ -1,74 +1,23 @@
-# CineTrack - Media Tracker & Community Platform
+# CineTrack — Rama Especializada `frontend` (React 19 + Vite)
 
-Trabajo Práctico Integrador para la cátedra de **Programación IV** (Plan 2024).  
-Universidad Tecnológica Nacional – Facultad Regional Resistencia (Extensión Áulica Goya).
+Esta rama contiene una instantanea selectiva y no destructiva desde `main` (`7b7c1712bd3c31e5493ccc414e5f88f3582d5950`) enfocada exclusivamente en la aplicacion web SPA de CineTrack:
 
-**Docentes:**
-- Ing. Juan Manuel Goya (Línea Python)
-- Prof. Gerardo Ramírez (Línea JavaScript)
+- **`frontend/`**: Aplicacion React 19 + Vite + React-Bootstrap + React Router 7, clientes Axios (`djangoClient`, `nodeClient`, interceptores JWT/refresh/degraded), servicios de dominio, `AuthContext`, paginas (`CatalogPage`, `MediaDetailPage`, `MyTrackingPage`, `NewEntryPage`, `MySubmissionsPage`, `AdminSubmissionsPage`, `RecommendationsPage`, `LoginPage`, `RegisterPage`), asistente flotante con claqueta animada (`FloatingRecommendationChat`, `ClapperboardLauncher`), pruebas Vitest y E2E Playwright, `Dockerfile` y `.env.example`.
+- **`docs/frontend/`**: Copias de referencia de `DESIGN.md`, `PRODUCT.md`, atribuciones MIT de la claqueta, reportes QA visuales/E2E y capturas del asistente flotante (la documentacion integral completa permanece en `main`).
 
----
+## Dependencias Externas (No Duplicadas)
 
-## 1. Declaración de Uso de Asistentes de IA
-En cumplimiento con el reglamento de la cátedra, se declara el uso de asistentes de IA:
-- **Herramienta utilizada:** Gemini Flash 3.8 Medium / Antigravity IDE.
-- **Finalidad:** Asistencia en la generación de esqueletos de código y redacción de documentación técnica preliminar.
-- **Responsabilidad:** Todo el código y arquitectura han sido revisados, comprendidos y son defendibles en su totalidad por los integrantes del equipo.
+La SPA requiere los backends activos para operar en vivo:
+- **Backend Django (`VITE_DJANGO_API_URL=http://localhost:8000/api/v1`):** Autenticacion, catalogo, propuestas, moderacion y diario privado.
+- **Backend Node.js (`VITE_NODE_API_URL=http://localhost:5000/api/v1`):** Notas personales privadas y recomendaciones IA.
+- **Restriccion de merge:** No fusionar esta rama completa hacia `main` (contiene unicamente el frontend). Integrar cambios puntuales mediante cherry-pick o rutas especificas.
 
----
+## Ejecucion de Verificaciones
 
-## 2. Arquitectura General y Tecnologías
-- `backend-django/`: Django 5, DRF, PostgreSQL 16, SimpleJWT.
-- `backend-node/`: Node.js 20, Express, Mongoose 8, MongoDB 7, Socket.IO 4.
-- `service-ai/`: FastAPI, Pydantic v2, Ollama local (`llama3.2:1b`).
-- `docs/`: Entregas oficiales de las Fases 0 a 5.
-
----
-
-## 3. Instrucciones de Puesta en Marcha (Entorno Local)
-
-### Requisitos previos
-- Python 3.11+
-- Node.js 20 LTS
-- Git
-
-### Paso 1: Clonar el repositorio
 ```bash
-git clone https://github.com/BorghiEsteff/TPI-ProgIV.git
-cd TPI-ProgIV
-```
-
-### Paso 2: Configurar variables de entorno
-```bash
-cp backend-django/.env.example backend-django/.env
-cp backend-node/.env.example backend-node/.env
-cp service-ai/.env.example service-ai/.env
-```
-
-### Paso 3: Inicializar Backend Django
-```bash
-cd backend-django
-python -m venv venv
-# En Windows:
-.\venv\Scripts\activate
-# En Linux/macOS:
-source venv/bin/activate
-
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver 8000
-```
-
-### Paso 4: Inicializar Backend Node
-```bash
-cd ../backend-node
-npm install
-npm run dev
-```
-
-### Paso 5: Inicializar Microservicio de IA
-```bash
-cd ../service-ai
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8002
+cd frontend
+npm ci
+npm run lint
+npm test
+npm run build
 ```
