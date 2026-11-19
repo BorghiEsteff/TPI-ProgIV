@@ -1,74 +1,27 @@
-# CineTrack - Media Tracker & Community Platform
+# CineTrack — Rama Especializada `backend-django` (Python: Django + FastAPI IA)
 
-Trabajo Práctico Integrador para la cátedra de **Programación IV** (Plan 2024).  
-Universidad Tecnológica Nacional – Facultad Regional Resistencia (Extensión Áulica Goya).
+Esta rama contiene una instantanea selectiva y no destructiva desde `main` (`7b7c1712bd3c31e5493ccc414e5f88f3582d5950`) enfocada exclusivamente en el frente Python del ecosistema CineTrack:
 
-**Docentes:**
-- Ing. Juan Manuel Goya (Línea Python)
-- Prof. Gerardo Ramírez (Línea JavaScript)
+- **`backend-django/`**: API REST (DRF), GraphQL (`graphene-django`), OpenAPI 3.0 (`drf-spectacular`), autenticacion centralizada SimpleJWT (`HS256`), catalogo relacional (`MediaItem`, `Genre`, `Season`, `Episode`, `MediaSubmission`), diario privado (`UserProgress`) y conciliacion de duplicados.
+- **`service-ai/`**: Microservicio independiente en FastAPI + Pydantic + Groq (`openai/gpt-oss-20b` con fallback determinista) para recomendaciones sobre el catalogo publicado (`POST /ai/recommend`).
+- **`docs/backend-django/`** y **`docs/service-ai/`**: Copias de referencia de la documentacion, contratos OpenAPI y reportes QA pertinentes a este frente (la documentacion integral completa permanece en `main`).
 
----
+## Dependencias Externas y Contratos
 
-## 1. Declaración de Uso de Asistentes de IA
-En cumplimiento con el reglamento de la cátedra, se declara el uso de asistentes de IA:
-- **Herramienta utilizada:** Gemini Flash 3.8 Medium / Antigravity IDE.
-- **Finalidad:** Asistencia en la generación de esqueletos de código y redacción de documentación técnica preliminar.
-- **Responsabilidad:** Todo el código y arquitectura han sido revisados, comprendidos y son defendibles en su totalidad por los integrantes del equipo.
+- **Base de datos relacional:** PostgreSQL 16 (o SQLite local para desarrollo/QA mediante `DB_ENGINE=django.db.backends.sqlite3`).
+- **Consumidores externos:**
+  - `backend-node` verifica los tokens JWT emitidos por Django (`JWT_SIGNING_KEY` compartido), consulta `/api/v1/media/` y `/api/v1/tracking/verify-ownership/`, y consume `POST http://localhost:8002/ai/recommend`.
+  - `frontend` consume la API REST (`/api/v1/`), GraphQL (`/graphql/`) y OpenAPI (`/api/docs/`).
+- **Restriccion de merge:** No fusionar esta rama completa hacia `main` (contiene unicamente el frente Python). Integrar cambios puntuales mediante cherry-pick o rutas especificas.
 
----
+## Ejecucion de Pruebas
 
-## 2. Arquitectura General y Tecnologías
-- `backend-django/`: Django 5, DRF, PostgreSQL 16, SimpleJWT.
-- `backend-node/`: Node.js 20, Express, Mongoose 8, MongoDB 7, Socket.IO 4.
-- `service-ai/`: FastAPI, Pydantic v2, Ollama local (`llama3.2:1b`).
-- `docs/`: Entregas oficiales de las Fases 0 a 5.
-
----
-
-## 3. Instrucciones de Puesta en Marcha (Entorno Local)
-
-### Requisitos previos
-- Python 3.11+
-- Node.js 20 LTS
-- Git
-
-### Paso 1: Clonar el repositorio
 ```bash
-git clone https://github.com/BorghiEsteff/TPI-ProgIV.git
-cd TPI-ProgIV
-```
-
-### Paso 2: Configurar variables de entorno
-```bash
-cp backend-django/.env.example backend-django/.env
-cp backend-node/.env.example backend-node/.env
-cp service-ai/.env.example service-ai/.env
-```
-
-### Paso 3: Inicializar Backend Django
-```bash
+# Backend Django
 cd backend-django
-python -m venv venv
-# En Windows:
-.\venv\Scripts\activate
-# En Linux/macOS:
-source venv/bin/activate
+python -m pytest -q
 
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver 8000
-```
-
-### Paso 4: Inicializar Backend Node
-```bash
-cd ../backend-node
-npm install
-npm run dev
-```
-
-### Paso 5: Inicializar Microservicio de IA
-```bash
+# Microservicio IA (FastAPI)
 cd ../service-ai
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8002
+python -m pytest -q
 ```
