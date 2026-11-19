@@ -180,13 +180,13 @@ const FloatingRecommendationChat = () => {
           data-testid="floating-ai-panel"
         >
           <header className="ct-ai-panel-header">
-            <h2 className="ct-ai-panel-title">
-              <span style={{ width: 20, height: 20, display: 'inline-block' }}>
+            <div className="ct-ai-panel-brand">
+              <span className="ct-ai-panel-icon">
                 <ClapperboardIcon animated={false} />
               </span>
-              <span>CineTrack IA · Recomendaciones</span>
-            </h2>
-            <div className="d-flex align-items-center gap-1">
+              <h2 className="ct-ai-panel-title">CineTrack IA</h2>
+            </div>
+            <div className="ct-ai-panel-actions">
               <button
                 type="button"
                 className="ct-ai-header-btn"
@@ -259,10 +259,8 @@ const FloatingRecommendationChat = () => {
                                   {rec.media_type}
                                 </Badge>
                               </div>
-                              <p className="small text-muted mb-2" style={{ fontSize: '0.78rem' }}>
-                                {rec.reason}
-                              </p>
-                              <div className="d-flex flex-wrap gap-1">
+                              <p className="ct-ai-rec-reason">{rec.reason}</p>
+                              <div className="ct-ai-rec-actions">
                                 <Button
                                   as={Link}
                                   to={`/media/${rec.media_item_id}`}
@@ -350,11 +348,9 @@ const FloatingRecommendationChat = () => {
                 Enviar
               </Button>
             </div>
-            <div className="d-flex justify-content-between align-items-center mt-1">
-              <span className="text-muted" style={{ fontSize: '0.72rem' }}>
-                Solo obras publicadas en CineTrack
-              </span>
-              <span className="text-muted" style={{ fontSize: '0.72rem' }}>
+            <div className="ct-ai-meta-row">
+              <span>Solo obras publicadas en CineTrack</span>
+              <span>
                 {prompt.length}/{MAX_PROMPT_CHARS}
               </span>
             </div>
