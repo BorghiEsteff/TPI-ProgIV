@@ -1,27 +1,36 @@
-# CineTrack — Rama Especializada `backend-django` (Python: Django + FastAPI IA)
+# CineTracker — Rama Especializada `backend-django` (Django + `service-ai`)
 
-Esta rama contiene una instantanea selectiva y no destructiva desde `main` (`7b7c1712bd3c31e5493ccc414e5f88f3582d5950`) enfocada exclusivamente en el frente Python del ecosistema CineTrack:
+Esta rama contiene los dos servicios Python del ecosistema: `backend-django/` (API REST/GraphQL, JWT, catálogo, diario y moderación) y `service-ai/` (FastAPI + Groq/fallback). No incluye `backend-node/`, `frontend/` ni `docker-compose.yml` (que residen integrados en `main`).
 
-- **`backend-django/`**: API REST (DRF), GraphQL (`graphene-django`), OpenAPI 3.0 (`drf-spectacular`), autenticacion centralizada SimpleJWT (`HS256`), catalogo relacional (`MediaItem`, `Genre`, `Season`, `Episode`, `MediaSubmission`), diario privado (`UserProgress`) y conciliacion de duplicados.
-- **`service-ai/`**: Microservicio independiente en FastAPI + Pydantic + Groq (`openai/gpt-oss-20b` con fallback determinista) para recomendaciones sobre el catalogo publicado (`POST /ai/recommend`).
-- **`docs/backend-django/`** y **`docs/service-ai/`**: Copias de referencia de la documentacion, contratos OpenAPI y reportes QA pertinentes a este frente (la documentacion integral completa permanece en `main`).
+> **Nota de divergencia respecto a `main`:** en esta instantánea de la rama, `backend-django/requirements.txt` declara `Django>=5.0,<5.2` (mientras que `main` declara `Django>=5.0,<6.2`) y `seed_data.py` aún conserva la referencia heredada `User.Role.CRITIC`. No prometer Django 6.1 al instalar desde este `requirements.txt` sin alinear la dependencia.
 
-## Dependencias Externas y Contratos
+---
 
-- **Base de datos relacional:** PostgreSQL 16 (o SQLite local para desarrollo/QA mediante `DB_ENGINE=django.db.backends.sqlite3`).
-- **Consumidores externos:**
-  - `backend-node` verifica los tokens JWT emitidos por Django (`JWT_SIGNING_KEY` compartido), consulta `/api/v1/media/` y `/api/v1/tracking/verify-ownership/`, y consume `POST http://localhost:8002/ai/recommend`.
-  - `frontend` consume la API REST (`/api/v1/`), GraphQL (`/graphql/`) y OpenAPI (`/api/docs/`).
-- **Restriccion de merge:** No fusionar esta rama completa hacia `main` (contiene unicamente el frente Python). Integrar cambios puntuales mediante cherry-pick o rutas especificas.
+## Arranque desde clon limpio
 
-## Ejecucion de Pruebas
-
+### 1. Backend Django (`backend-django/`, puerto `8000`)
 ```bash
-# Backend Django
-cd backend-django
-python -m pytest -q
-
-# Microservicio IA (FastAPI)
-cd ../service-ai
-python -m pytest -q
+git clone -b backend-django https://github.com/BorghiEsteff/TPI-ProgIV.git
+cd TPI-ProgIV/backend-django
+cp .env.example .env
+python -m venv venv
+# Windows: .\venv\Scripts\python.exe -m pip install -r requirements.txt
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver 0.0.0.0:8000
 ```
+
+### 2. Microservicio IA (`service-ai/`, puerto `8002`)
+```bash
+cd ../service-ai
+cp .env.example .env
+python -m venv venv
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8002
+```
+* Si `GROQ_API_KEY` está vacía, `service-ai` responde en modo determinista (`degraded: true`). El default en código (`services/recommender.py`) es `openai/gpt-oss-20b`.
+
+### Pruebas autocontenidas
+* **Django:** `cd backend-django && pytest -v` (en Windows PowerShell con SQLite QA: `$env:DB_ENGINE="django.db.backends.sqlite3"; pytest -v`)
+* **FastAPI:** `cd service-ai && pytest -v`
+* Ver detalle en [docs/backend-django/QA_COMMANDS.md](docs/backend-django/QA_COMMANDS.md).
