@@ -11,7 +11,7 @@ Proyecto Integrador de **Programación IV** — UTN Facultad Regional Resistenci
 | Componente | Carpeta | Stack principal | Puerto local | Responsabilidad |
 | :--- | :--- | :--- | :--- | :--- |
 | **Backend Central** | `backend-django/` | Django 6.1.2, DRF, SimpleJWT, Graphene, drf-spectacular | `8000` | Identidad/RBAC (`USER`, `ADMIN`), catálogo público, propuestas/moderación, diario privado, REST, GraphQL y OpenAPI |
-| **Microservicio IA** | `service-ai/` | FastAPI, Pydantic v2, httpx, Groq Cloud API | `8002` | Endpoint `POST /ai/recommend` limitado al catálogo publicado, con degradación determinista (`degraded: true`) ante ausencia o fallo de `GROQ_API_KEY` |
+| **Microservicio IA** | `service-ai/` | FastAPI, Pydantic v2, httpx, Groq Cloud API | `8002` | Endpoint `POST /ai/recommend` limitado al catálogo publicado (default en código: `openai/gpt-oss-20b` en `recommender.py`; `docker-compose.yml` fija `llama-3.1-8b-instant` si no se define `GROQ_MODEL`), con degradación determinista (`degraded: true`) ante ausencia o fallo de `GROQ_API_KEY` |
 | **Backend Complementario** | `backend-node/` | Node.js 20+, Express, Mongoose (MongoDB 7), Apollo/GraphQL | `5000` | Verificación JWT compartida, notas privadas (`PersonalNote`), proxy `/api/v1/recommendations` y endpoints heredados desactivados (`410`) |
 | **Frontend SPA** | `frontend/` | React 19, Vite 8, Axios, Vitest, Playwright | `5173` | Catálogo público, detalle, diario personal, propuestas, panel de moderación y asistente flotante IA con claqueta |
 

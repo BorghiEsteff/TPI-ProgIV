@@ -36,15 +36,3 @@ Elaborar el informe técnico final integral (documento PDF de 20 a 35 páginas) 
 ### Sección 6: Conclusiones, Lecciones Aprendidas y Trabajo Futuro
 - Evaluación de resultados frente a los objetivos iniciales.
 - Retos superados en integración políglota y recomendaciones para evolución del producto.
-
----
-
-## 3. Guion de Defensa Oral (8 Minutos)
-
-- **Minuto 1:** Presentación del equipo, problema y demo conceptual de CineTrack.
-- **Minuto 2-3:** Justificación de la arquitectura políglota (Django + Postgres / Node + Mongo) y demostración de integridad referencial.
-- **Minuto 4:** Demostración en vivo de emisión y validación cruzada de JWT.
-- **Minuto 5:** Demostración del asistente flotante IA (`FloatingRecommendationChat`) con Groq / fallback determinista y aislamiento de notas privadas.
-- **Minuto 6:** Explicación técnica de optimización con `EXPLAIN ANALYZE`.
-- **Minuto 7:** Demostración de CI/CD en GitHub Actions y orquestación con Docker Compose.
-- **Minuto 8:** Conclusiones, preguntas del jurado y cierre.

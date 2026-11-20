@@ -1,3 +1,5 @@
+> **[HISTÓRICO]** Documento de referencia de un corte previo al cierre final del 19–20/11/2026. Para el estado vigente en \main\, consultar [ACTA_VALIDACION_FINAL.md](ACTA_VALIDACION_FINAL.md) y [ARQUITECTURA_AS_BUILT.md](../ARQUITECTURA_AS_BUILT.md).
+
 # QA Autenticación, Roles y Cierre Integral — CineTrack (`2026-11-16`)
 
 ## 1. Rama, SHA base y estado local

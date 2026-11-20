@@ -1,3 +1,5 @@
+> **[HISTÓRICO]** Documento de referencia del corte 14/11/2026. Para el estado vigente en \main\, consultar [docs/qa/ACTA_VALIDACION_FINAL.md](docs/qa/ACTA_VALIDACION_FINAL.md) y [docs/ARQUITECTURA_AS_BUILT.md](docs/ARQUITECTURA_AS_BUILT.md).
+
 # CineTrack — Estado de Implementación (Reenfoque P0–P6)
 
 **Fecha de actualización:** 2026-11-14  

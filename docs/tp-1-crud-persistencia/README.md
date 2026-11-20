@@ -1,40 +1,9 @@
-# TP 1: APIs CRUD, Persistencia Políglota e Integración Inter-Servicios
+# TP 1: Persistencia Dual (SQL + MongoDB) y Dominio CineTrack
 
-**Asignatura:** Programación IV (Plan 2024) - UTN FRRE (Extensión Áulica Goya)  
-**Proyecto:** CineTrack  
+## Alcance vigente en `main`
+1. **Persistencia Relacional (`backend-django/` + PostgreSQL 16 / SQLite QA):**
+   - Catálogo unificado (`Genre`, `MediaItem`, `Season`, `Episode`), propuestas comunitarias y moderación (`MediaSubmission`) y diario privado (`UserProgress`).
+2. **Persistencia Documental (`backend-node/` + MongoDB 7):**
+   - Notas personales privadas y calificación `1..5` (`PersonalNote`, colección `personalnotes`), aisladas por `(userId, mediaId)` en reemplazo de las reseñas públicas iniciales.
 
----
-
-## 1. Objetivos del Trabajo Práctico
-Implementar las capas fundamentales de persistencia políglota y endpoints RESTful, articulando la comunicación inter-servicios con tolerancia a fallos.
-
----
-
-## 2. Requisitos y Entregables
-
-### 2.1 Backend Django (PostgreSQL 16)
-- **Modelos relacionales:**
-  - `User`, `Genre`, `MediaItem`, `Season`, `Episode`, `UserProgress`.
-  - Migraciones consistentes y sin conflictos.
-- **Serializers y ViewSets (DRF):**
-  - CRUD completo para catálogo y tracking granular.
-  - Endpoint especializado para actualización de progreso: `PATCH /api/v1/tracking/series/:id/progress/`.
-  - Paginación estándar y filtros por género, productora, estado y favoritos.
-
-### 2.2 Backend Node.js / Express (MongoDB 7)
-- **Modelos y Schemas Mongoose:**
-  - Colección `reviews` con puntuación (1-10), comentario, bandera `is_spoiler` y subdocumentos anidados para respuestas (`replies`).
-- **Arquitectura en capas:**
-  - Schemas, Repositories/Services, Controllers y validación exhaustiva con Zod.
-- **Endpoints CRUD:**
-  - `POST /api/v1/reviews/`, `GET /api/v1/reviews/series/:id`, `POST /api/v1/reviews/:id/replies`.
-
-### 2.3 Integración Inter-Servicios (`integracion.md`)
-- Consumo de la API de Django desde Node.js mediante cliente Axios configurado con:
-  - Timeout estricto de 2500 ms.
-  - Estrategia de degradación elegante: ante caída o demora de Django, retornar los datos sociales disponibles con el header `X-Degraded-Mode: true`.
-- Documento formal explicativo en `docs/tp-1-crud-persistencia/integracion.md`.
-
-### 2.4 Suite de Pruebas Unitarias
-- **Django:** Tests con Pytest / `pytest-django` para validar integridad referencial y lógica de tracking en segundos.
-- **Node.js:** Tests con Jest y Supertest para validar contratos de entrada Zod y operaciones sobre subdocumentos.
+Ver el detalle actualizado de modelos e integración en [modelado.md](modelado.md), [integracion.md](integracion.md) y [ARQUITECTURA_AS_BUILT.md](../ARQUITECTURA_AS_BUILT.md).

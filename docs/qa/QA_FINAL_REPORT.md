@@ -1,3 +1,5 @@
+> **[HISTÓRICO]** Documento de referencia de un corte previo al cierre final del 19–20/11/2026. Para el estado vigente en \main\, consultar [ACTA_VALIDACION_FINAL.md](ACTA_VALIDACION_FINAL.md) y [ARQUITECTURA_AS_BUILT.md](../ARQUITECTURA_AS_BUILT.md).
+
 # Reporte Final de QA — CineTrack
 
 - **Rama Git:** `feature/frontend-cinetrack` (sin `git push` ni commits remotos).

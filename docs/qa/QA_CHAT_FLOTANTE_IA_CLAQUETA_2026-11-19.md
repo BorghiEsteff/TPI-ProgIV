@@ -1,3 +1,5 @@
+> **Nota de integración:** Funcionalidad ya integrada y verificada en \main\ (ver [ACTA_VALIDACION_FINAL.md](ACTA_VALIDACION_FINAL.md)). El modelo predeterminado en \service-ai/services/recommender.py\ es \openai/gpt-oss-20b\ (Compose usa \llama-3.1-8b-instant\ si no se define \GROQ_MODEL\).
+
 # Reporte QA — Asistente Flotante IA Claqueta (CineTrack)
 
 **Fecha:** 2026-11-19  

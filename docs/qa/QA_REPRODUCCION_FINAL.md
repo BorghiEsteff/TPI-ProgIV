@@ -43,7 +43,7 @@ Ejecutar pruebas:
 ```powershell
 cd frontend
 npm run test:e2e -- --project=chromium-desktop
-# (opcional: re-sembrar antes de mobile)
+# Obligatorio re-sembrar db.qa.sqlite3 (.\venv\Scripts\python.exe seed_qa.py) y limpiar cinetrack_qa antes de mobile:
 npm run test:e2e -- --project=chromium-mobile
 npm test -- --run
 npm run build

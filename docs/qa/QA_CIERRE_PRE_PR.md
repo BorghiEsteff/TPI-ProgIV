@@ -1,3 +1,5 @@
+> **[HISTÓRICO]** Documento de referencia de un corte previo al cierre final del 19–20/11/2026. Para el estado vigente en \main\, consultar [ACTA_VALIDACION_FINAL.md](ACTA_VALIDACION_FINAL.md) y [ARQUITECTURA_AS_BUILT.md](../ARQUITECTURA_AS_BUILT.md).
+
 # CineTrack — Cierre Técnico, Auditoría Final y Validación Previa a PR
 
 ## 1. Identificación, Contexto Git y Variables

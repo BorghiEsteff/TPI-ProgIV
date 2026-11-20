@@ -52,6 +52,7 @@ npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
 ## 3. Ejecutar Playwright E2E
+> **Nota importante:** para evitar estado residual entre desktop y móvil, reinicializar `db.qa.sqlite3` (`python seed_qa.py`) y `cinetrack_qa` antes de correr cada proyecto por separado.
 ```powershell
 cd frontend
 npm run test:e2e -- --project=chromium-desktop

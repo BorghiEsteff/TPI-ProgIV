@@ -1,3 +1,5 @@
+> **[HISTÓRICO — PROPUESTA INICIAL]** Propuesta académica original (incluye rol \CRITIC\, reseñas públicas, WatchRooms y Ollama). Para la arquitectura implementada en \main\, consultar [ARQUITECTURA_AS_BUILT.md](../ARQUITECTURA_AS_BUILT.md).
+
 # PROPUESTA DE TRABAJO PRÁCTICO INTEGRADOR
 
 **Asignatura:** Programación IV (Plan 2024)  

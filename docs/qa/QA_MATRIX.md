@@ -1,9 +1,11 @@
 # Matriz E2E QA — CineTrack
 
+> **[HISTÓRICO — CORTE 13–14/11/2026]** Esta matriz documenta los 16 casos base (`01` a `07`). En el cierre vigente (`main`, 19–20/11/2026) se sumaron los specs `08-categories-and-visual-qa.spec.js`, `09-auth-roles-regression.spec.js` y `10-floating-ai-clapper.spec.js`, alcanzando **22 casos en `chromium-desktop` y 22 en `chromium-mobile`** (ver [ACTA_VALIDACION_FINAL.md](ACTA_VALIDACION_FINAL.md)).
+
 Ejecutada contra servicios locales reales en entorno QA aislado (`SQLITE_DB_NAME=db.qa.sqlite3`, `MONGODB_URI=mongodb://127.0.0.1:27017/cinetrack_qa`, `GROQ_API_KEY=""`).
 
-- **`chromium-desktop` (`1440x900`)**: 16/16 specs `PASS` (`02-auth-roles.spec.js` re-verificado 4/4 tras ajuste móvil).
-- **`chromium-mobile` (`390x844`, `isMobile: true`)**: 16/16 specs `PASS`.
+- **`chromium-desktop` (`1440x900`)**: 16/16 specs `PASS` en aquel corte (`02-auth-roles.spec.js` re-verificado 4/4 tras ajuste móvil).
+- **`chromium-mobile` (`390x844`, `isMobile: true`)**: 16/16 specs `PASS` en aquel corte.
 
 | Caso | Descripción | Spec Playwright | Desktop | Mobile | Evidencia / Resultado |
 | :--- | :--- | :--- | :---: | :---: | :--- |

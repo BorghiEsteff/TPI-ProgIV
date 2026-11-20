@@ -21,7 +21,9 @@ Documento de referencia técnica y académica alineado al estado real del códig
 
 ### 1.3 Cambio de proveedor IA: de Ollama local a Groq Cloud + fallback determinista
 * **Contexto original (TP3):** se propuso inferencia local con Ollama (`llama3.2:1b`) y análisis de spoilers (`/ai/review-guard`).
-* **Implementación vigente:** `service-ai/main.py` expone `POST /ai/recommend` apoyado en **Groq Cloud API** (`llama-3.1-8b-instant` configurable vía `GROQ_MODEL`, timeout de `2.8s`) y un **motor determinista de respaldo** (`degraded: true`) cuando falta `GROQ_API_KEY` o la API externa falla / responde JSON inválido. El antiguo endpoint `/ai/review-guard` fue retirado junto con las reseñas públicas.
+* **Implementación vigente:** `service-ai/main.py` expone `POST /ai/recommend` apoyado en **Groq Cloud API** (el código en `service-ai/services/recommender.py` define `DEFAULT_GROQ_MODEL = "openai/gpt-oss-20b"`, mientras que `docker-compose.yml` inyecta `GROQ_MODEL=${GROQ_MODEL:-llama-3.1-8b-instant}` cuando no se define en `.env`, con timeout de `2.8s`) y un **motor determinista de respaldo** (`degraded: true`) cuando falta `GROQ_API_KEY` o la API externa falla / responde JSON inválido. Además, soporta historial conversacional acotado, protección contra *prompt injection* y filtrado estricto por catálogo publicado (`is_active=True`). El antiguo endpoint `/ai/review-guard` fue retirado junto con las reseñas públicas.
+
+> **Estado de ramas especializadas:** las ramas `frontend`, `backend-node` y `backend-django` conservan instantáneas selectivas de su ámbito (ver tabla en `CUMPLIMIENTO_TP0_TP5.md`), manteniendo `main` como referencia integradora única.
 * **Justificación:** Ollama requiere GPU/RAM local elevada y descarga previa de pesos de varios GB, lo que dificulta la portabilidad en CI/CD y evaluación académica. Groq ofrece latencia baja con capa gratuita, mientras que el fallback determinista garantiza disponibilidad 100 % sin clave ni conexión externa, y la revalidación de IDs en `service-ai` y `backend-node` impide alucinaciones fuera del catálogo publicado (`is_active=True`).
 
 ---

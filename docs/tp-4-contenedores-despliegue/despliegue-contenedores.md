@@ -1,99 +1,17 @@
-# TP 4: Contenedorización Multi-Servicio, OpenAPI 3.0 y Consultas GraphQL
+# TP 4: Despliegue en Contenedores (`docker-compose.yml`)
 
-## 1. Arquitectura de Despliegue en Contenedores (`Docker Compose`)
+## 1. Servicios orquestados (6 servicios en red `cinetrack-net`)
 
-El sistema integral de **CineTrack** se encuentra completamente orquestado para ejecución en ambientes de desarrollo y producción mediante `docker-compose.yml`, interconectando cinco microservicios en una red virtual aislada `cinetrack-net`:
+1. **`postgres` (`postgres:16-alpine`, puerto `5432`):** base relacional de Django con healthcheck `pg_isready`.
+2. **`mongo` (`mongo:7`, puerto `27017`):** base documental de Node.js (`PersonalNote`) con healthcheck `mongosh ping`.
+3. **`django-backend` (`backend-django/Dockerfile`, puerto `8000`):** API REST, JWT, GraphQL y `/api/docs/`.
+4. **`service-ai` (`service-ai/Dockerfile`, puerto `8002`):** FastAPI `POST /ai/recommend` (`GROQ_MODEL=${GROQ_MODEL:-llama-3.1-8b-instant}`).
+5. **`node-backend` (`backend-node/Dockerfile`, puerto `5000`):** Express + Mongoose (`MONGODB_URI`) + GraphQL (`publicMediaDetails`).
+6. **`frontend` (`frontend/Dockerfile`, puerto `5173`):** React 19 + Vite 8.
 
-```mermaid
-flowchart TD
-    subgraph ClientLayer [Clientes / Consumidores]
-        Frontend["Frontend SPA / Mobile"]
-        Postman["Swagger UI / GraphiQL / Postman"]
-    end
-
-    subgraph DockerNetwork [Red Docker cinetrack-net]
-        Django["django-backend (Port 8000)<br/>Python 3.12 / DRF + GraphQL"]
-        Node["node-backend (Port 5000)<br/>Node.js 20 / Express + Socket.IO"]
-        FastAPI["service-ai (Port 8002)<br/>FastAPI / Groq LPU"]
-        PG[("PostgreSQL 16 (Port 5432)<br/>cinetrack_db")]
-        Mongo[("MongoDB 7 (Port 27017)<br/>cinetrack_social")]
-    end
-
-    Frontend -->|HTTP / OpenAPI / GraphQL| Django
-    Frontend -->|REST / WebSocket| Node
-    Postman -->|Docs / Schema| Django
-
-    Django -->|Transaccional| PG
-    Node -->|Colección Reviews| Mongo
-    Node -->|Validación HTTP 2500ms| Django
-    Node -->|Detección Spoilers HTTP 4000ms| FastAPI
+## 2. Arranque reproducible
+```bash
+cp .env.example .env
+# Configurar DB_PASSWORD, SECRET_KEY y JWT_SIGNING_KEY en .env
+docker compose up --build
 ```
-
----
-
-## 2. Buenas Prácticas de Contenedorización Implementadas
-
-1. **Construcción Multi-Stage:**
-   - Tanto `backend-node/Dockerfile` como `backend-django/Dockerfile` utilizan imágenes base ligeras (`alpine` y `slim`) dividiendo la etapa de compilación de librerías y dependencias de la imagen final de ejecución.
-2. **Seguridad y Principio de Menor Privilegio (Non-Root Users):**
-   - `node-backend`: Ejecuta bajo el usuario `node` (UID 1000).
-   - `django-backend`: Crea y ejecuta bajo el usuario del sistema `appuser` (UID 1000).
-   - `service-ai`: Crea y ejecuta bajo el usuario del sistema `aiuser` (UID 1001).
-3. **Persistencia e Integridad:**
-   - Volúmenes declarados con nombre (`postgres_data` y `mongo_data`) para preservar la base relacional y la base de documentos.
-4. **Healthchecks y Dependencias Ordenadas:**
-   - `pg_isready` en PostgreSQL y `mongosh ping` en Mongo garantizan que las aplicaciones inicien únicamente cuando las bases de datos estén listas para aceptar conexiones (`condition: service_healthy`).
-
----
-
-## 3. Especificaciones OpenAPI 3.0 Desacopladas
-
-Para garantizar total independencia entre microservicios y evitar colisiones de archivos:
-
-- **Capa Social y Reseñas (Node.js):**
-  - Documentada en [`docs/tp-4-contenedores-despliegue/openapi.json`](../../docs/tp-4-contenedores-despliegue/openapi.json).
-  - Define las operaciones CRUD de reseñas, subdocumentos de respuestas y esquema de seguridad Bearer.
-- **Identidad, Catálogo y Tracking (Django):**
-  - Generada dinámicamente con `drf-spectacular` y exportada en [`docs/tp-4-contenedores-despliegue/openapi-django.json`](../../docs/tp-4-contenedores-despliegue/openapi-django.json).
-  - Endpoints interactivos disponibles en ejecución:
-    - `GET /api/schema/`: Especificación OpenAPI 3.0 en JSON/YAML.
-    - `GET /api/docs/`: Interfaz interactiva Swagger UI.
-    - `GET /api/redoc/`: Documentación visual en ReDoc.
-
----
-
-## 4. Capa GraphQL y Consultas Federadas
-
-### A. Endpoint GraphQL en Django: `POST /graphql/`
-Implementado con `graphene-django` en [`backend-django/catalog/schema.py`](../../backend-django/catalog/schema.py):
-
-```graphql
-query ListCatalogAndItem($id: Int!) {
-  allMediaItems(mediaType: "SERIE") {
-    id
-    title
-    mediaType
-    genres {
-      name
-    }
-    seasons {
-      seasonNumber
-      episodeCount
-    }
-  }
-  mediaItemById(id: $id) {
-    id
-    title
-    producer
-    synopsis
-    releaseDate
-  }
-}
-```
-
-### B. Federación y Consumo Cruzado desde Node.js: `POST /graphql`
-El backend de Node.js expone en su resolver `mediaDetailsWithReviews` una consulta híbrida que resuelve en un único viaje de red:
-1. Valida y obtiene los datos del catálogo desde Django (`validateMediaExists`).
-2. Agrega las reseñas y el árbol de comentarios desde MongoDB.
-3. Calcula en tiempo de ejecución el promedio de calificación (`averageRating`) y el total de opiniones.
-
