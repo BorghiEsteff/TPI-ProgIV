@@ -1,81 +1,23 @@
-# CineTrack — Comandos de QA Local (Windows / PowerShell)
+# CineTracker Frontend — Comandos de QA
 
-Estos comandos levantan un entorno QA completamente aislado sin tocar `db.sqlite3` ni la base de desarrollo de MongoDB.
+Esta rama contiene únicamente `frontend/`. Para ejecutar Playwright E2E se requieren los servicios externos (`backend-django` en `:8000`, `backend-node` en `:5000`, `service-ai` en `:8002`) iniciados desde `main` o desde sus respectivas ramas.
 
-## 1. Inicializar base QA aislada
-```powershell
-Remove-Item -ErrorAction SilentlyContinue backend-django\db.qa.sqlite3
-cd backend-django
-$env:DB_ENGINE="django.db.backends.sqlite3"
-$env:SQLITE_DB_NAME="db.qa.sqlite3"
-.\venv\Scripts\python.exe manage.py migrate
-.\venv\Scripts\python.exe seed_qa.py
-```
-
-Limpiar BD MongoDB QA:
-```powershell
-cd backend-node
-node -e "import('mongoose').then(async ({default: m}) => { await m.connect('mongodb://127.0.0.1:27017/cinetrack_qa'); await m.connection.dropDatabase(); await m.disconnect(); })"
-```
-
-## 2. Levantar los 4 servicios QA (en terminales separadas)
-
-**Terminal 1 — Django (puerto 8000):**
-```powershell
-cd backend-django
-$env:DB_ENGINE="django.db.backends.sqlite3"
-$env:SQLITE_DB_NAME="db.qa.sqlite3"
-.\venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000 --noreload
-```
-
-**Terminal 2 — FastAPI IA (puerto 8002):**
-```powershell
-cd service-ai
-$env:GROQ_API_KEY=""
-.\venv\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8002
-```
-
-**Terminal 3 — Node/Express (puerto 5000):**
-```powershell
-cd backend-node
-$env:PORT="5000"
-$env:MONGODB_URI="mongodb://127.0.0.1:27017/cinetrack_qa"
-$env:DJANGO_API_URL="http://127.0.0.1:8000/api/v1"
-$env:AI_SERVICE_URL="http://127.0.0.1:8002/ai"
-node src/server.js
-```
-
-**Terminal 4 — Frontend Vite (puerto 5173):**
+## 1. Pruebas unitarias y build (autocontenidos en esta rama)
 ```powershell
 cd frontend
-npm run dev -- --host 127.0.0.1 --port 5173
+npm ci
+npm test
+npm run build
 ```
 
-## 3. Ejecutar Playwright E2E
+## 2. Pruebas E2E Playwright (requiere backends QA activos)
+1. En el clon de `main` (o `backend-django` + `backend-node`), inicializar la base QA aislada (`db.qa.sqlite3` con `python seed_qa.py` y `cinetrack_qa` en MongoDB) y levantar los 3 servicios backend.
+2. Instalar navegadores la primera vez y ejecutar:
 ```powershell
 cd frontend
+npx playwright install chromium
 npm run test:e2e -- --project=chromium-desktop
+# Re-sembrar db.qa.sqlite3 y limpiar cinetrack_qa antes de mobile:
 npm run test:e2e -- --project=chromium-mobile
 npm run test:e2e:report
-```
-
-## 4. Ejecutar suites unitarias / integración
-```powershell
-# Django
-cd backend-django
-$env:DB_ENGINE="django.db.backends.sqlite3"
-.\venv\Scripts\python.exe -m pytest -q
-
-# Node
-cd backend-node
-npm test
-
-# FastAPI
-cd service-ai
-.\venv\Scripts\python.exe -m pytest -q
-
-# Frontend Vitest + Build
-cd frontend
-npm test -- --run
-npm run build
 ```

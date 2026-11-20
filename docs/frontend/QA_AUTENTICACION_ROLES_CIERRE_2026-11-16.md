@@ -1,3 +1,5 @@
+> **[HISTÓRICO — CORTE 16/11/2026]** Evidencia integral de un corte previo (incluye referencias a servicios externos a esta rama). Ver estado vigente en \main\.
+
 # QA Autenticación, Roles y Cierre Integral — CineTrack (`2026-11-16`)
 
 ## 1. Rama, SHA base y estado local
@@ -56,7 +58,7 @@
   - `Playwright chromium-mobile`: **17/19** en corrida completa + **4/4** en `02-auth-roles.spec.js` y **1/1** en `09-auth-roles-regression.spec.js` tras ajustar la apertura del menú hamburguesa móvil.
 
 ## 6. Modos IA (Determinista vs Simulado vs Error)
-- [05-ai-recommendations.spec.js](file:///c:/Proyecto-Programacion/TPI-ProgramacionIV/frontend/e2e/specs/05-ai-recommendations.spec.js) valida los 3 escenarios independientemente de `GROQ_API_KEY`:
+- [05-ai-recommendations.spec.js](../frontend/e2e/specs/05-ai-recommendations.spec.js) valida los 3 escenarios independientemente de `GROQ_API_KEY`:
   - **Escenario A (`degraded: true`):** muestra recomendación real del catálogo + badge `Modo limitado` + respuesta honesta sin coincidencias.
   - **Escenario B (`degraded: false`):** muestra recomendación sin badge `Modo limitado`.
   - **Escenario C (`503` proveedor):** muestra alerta limpia sin traza técnica.

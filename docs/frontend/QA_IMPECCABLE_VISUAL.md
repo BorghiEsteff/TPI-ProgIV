@@ -1,3 +1,5 @@
+> **[HISTÓRICO — AUDITORÍA VISUAL]** Las capturas completas \aseline/\ y \fter/\ de catálogo residen en \main:docs/qa/screenshots/\.
+
 # QA Visual & Impeccable — CineTrack (`2026-11-14`)
 
 ## 1. Artefactos de Dirección Visual
