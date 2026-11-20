@@ -1,5 +1,7 @@
 # CineTrack — Informe Técnico Integral (TP 5)
 ## Frente Tecnológico: Python, Django REST Framework, PostgreSQL 16, FastAPI, Groq LPU y DevOps
+
+> **Nota de actualización al estado final (`main`):** este documento conserva el detalle histórico de TP1–TP4. En la versión integrada final de `main`, el ecosistema incorpora **6 contenedores en `docker-compose.yml`** (incluyendo `frontend`), roles consolidados en **`USER` y `ADMIN`** (`CRITIC` migrado), **notas privadas en MongoDB** en reemplazo de reseñas públicas/WatchRooms, y **Groq Cloud + fallback determinista** (`POST /ai/recommend`) con asistente flotante en React. Ver [ARQUITECTURA_AS_BUILT.md](../ARQUITECTURA_AS_BUILT.md), [CUMPLIMIENTO_TP0_TP5.md](../CUMPLIMIENTO_TP0_TP5.md) y [ACTA_VALIDACION_FINAL.md](../qa/ACTA_VALIDACION_FINAL.md).
 **Responsable:** Estefanía Borghi  
 **Cátedra:** Programación IV (Plan 2024) - UTN Facultad Regional Resistencia (Extensión Áulica Goya)  
 **Proyecto:** CineTrack (Plataforma Políglota de Seguimiento Multimedia y Capa Social)

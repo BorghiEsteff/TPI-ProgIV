@@ -1,5 +1,7 @@
 # CineTrack — Contribución al Informe Final Integrador (TP 5)
 ## Frente Tecnológico: JavaScript, Node.js, Express, MongoDB y Tiempo Real
+
+> **Nota de actualización al estado final (`main`):** este documento conserva el registro histórico del desarrollo inicial (reseñas, `Review`, WatchRooms). En la versión integrada final de `main`, Node.js se especializó en **`PersonalNote` (notas privadas y rating `1..5` aislados por `userId`)**, proxy **`/api/v1/recommendations`** hacia FastAPI/Groq, verificación JWT (`USER`/`ADMIN`) y respuesta `410 Gone` en `/api/v1/reviews`. Ver [ARQUITECTURA_AS_BUILT.md](../ARQUITECTURA_AS_BUILT.md) y [ACTA_VALIDACION_FINAL.md](../qa/ACTA_VALIDACION_FINAL.md).
 **Responsable:** Ari (Línea Node.js y Coordinación de Repositorio)  
 **Cátedra:** Programación IV (Plan 2024) - UTN Facultad Regional Resistencia (Extensión Áulica Goya)  
 **Proyecto:** CineTrack (Plataforma Políglota de Seguimiento Multimedia y Capa Social)

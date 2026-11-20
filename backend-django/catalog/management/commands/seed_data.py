@@ -27,7 +27,7 @@ class Command(BaseCommand):
             {
                 "email": "critic@cinetrack.local",
                 "username": "critico_experto",
-                "role": User.Role.CRITIC,
+                "role": User.Role.USER,
                 "is_staff": False,
                 "is_superuser": False,
                 "password": "CriticPassword123!",

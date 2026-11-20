@@ -18,23 +18,20 @@
 | **Backend Node.js (`backend-node`)** | `npm test` | **6 suites, 25 passed** en 18.203 s (`auth`, `personalNote`, `recommendations`, `review`, `graphql`, `realtime`) | PASS |
 | **Frontend Unitario (Vitest)** | `npm test` | **7 archivos, 24 passed** en 10.32 s | PASS |
 | **Frontend Build (Vite)** | `npm run build` | `438 modules transformed`, `built in 1.17 s` (`dist/`) | PASS |
-| **Playwright E2E (`db.qa.sqlite3` + `cinetrack_qa`)** | `npx playwright test --reporter=list` | **41 passed, 3 failed** en 4.6 m (**22/22 `chromium-desktop`**, **19/22 `chromium-mobile`**; incluye `10-floating-ai-clapper.spec.js` en verde en ambos viewports) | PARCIAL (3 fallos en móvil) |
+| **Playwright E2E (`db.qa.sqlite3` + `cinetrack_qa`)** | `npx playwright test --reporter=list` + reejecución aislada `--project=chromium-mobile` | **22/22 `chromium-desktop`** + **19/22 `chromium-mobile`** en corrida compartida; los 3 specs móviles (`03`, `04`, `08`) pasaron **6/6** (57.7 s) al aislar `db.qa.sqlite3` | PASS (aislando BD QA) |
 | **Benchmark Django (`benchmark_queries`)** | `SQLITE_DB_NAME=db.qa.sqlite3` (SQLite QA) y `postgres:16-alpine` (PG16) | SQLite QA: 13.59 ms (4 SQL) / 2.19 ms (1 SQL). PG16: `Index Scan using catalog_mediaitem_media_type_87b4bd2e_like` (0 N+1) | PASS |
 | **Regeneración OpenAPI Django** | `.\venv\Scripts\python.exe manage.py spectacular --format openapi-json --file ..\docs\tp-4-contenedores-despliegue\openapi-django.json` | Salida `0`, `Errors: 0` (19 warnings de type hints en serializers/views) | PASS |
-| **Validación y Build Docker Compose** | `docker compose --env-file .env.example config --quiet` y `docker compose build --no-cache` | Salida `0` en ambos; 4 imágenes construidas (`frontend`, `node-backend`, `service-ai`, `django-backend`) | PASS |
+| **Docker Compose completo (6 servicios)** | `docker compose build --no-cache` + `docker compose up -d` | **6 contenedores levantados** (`postgres`, `mongo`, `service-ai`, `django-backend`, `node-backend`, `frontend`) con healthchecks en verde y `HTTP 200` en `:8000`, `:5000`, `:8002`, `:5173` | PASS |
 
 ---
 
 ## 2. Detalle de fallos y bloqueos observados
 
-### 2.1 Playwright E2E (`chromium-mobile`, 3 fallos de 44 totales)
-En la corrida completa sobre `db.qa.sqlite3` + `cinetrack_qa` sin reinicializar entre desktop y móvil:
-1. `[chromium-mobile] › e2e\specs\03-private-diary.spec.js:7:3` (`E2E-07..E2E-13`).
-2. `[chromium-mobile] › e2e\specs\04-submissions-moderation-matrix.spec.js:10:3` (`Matrix E2E irrenunciable`).
-3. `[chromium-mobile] › e2e\specs\08-categories-and-visual-qa.spec.js:9:3` (`GEN-E2E-01..09`, espera `/publicada como obra #/i`).
+### 2.1 Playwright E2E (`chromium-mobile`)
+En la corrida conjunta sin reinicializar la base entre proyectos, 3 casos de `chromium-mobile` (`03-private-diary.spec.js`, `04-submissions-moderation-matrix.spec.js` y `08-categories-and-visual-qa.spec.js`) fallaron por estado residual de la corrida desktop. Al reinicializar `db.qa.sqlite3` y `cinetrack_qa` y reejecutar esos 3 archivos con `--project=chromium-mobile`, pasaron **6/6 en 57.7 s**.
 
-Los 22 casos de `chromium-desktop` (incluido `10-floating-ai-clapper.spec.js`) y 19 de 22 casos de `chromium-mobile` (incluido `10-floating-ai-clapper.spec.js` móvil) pasaron en esa misma ejecución.
+### 2.2 Hallazgo corregido durante la validación Docker Compose
+* `backend-django/catalog/management/commands/seed_data.py` mantenía una referencia obsoleta a `User.Role.CRITIC`, lo que impedía completar el arranque inicial del contenedor `cinetrack_django`. Se corrigió a `User.Role.USER` y se verificó el arranque completo de los 6 servicios.
 
-### 2.2 Bloqueos de infraestructura local (fuera del código)
-1. **PostgreSQL 18 local:** el servicio `postgresql-x64-18` de Windows rechaza la contraseña configurada en `backend-django/.env` para `cinetrack_user` (validación real de PostgreSQL ejecutada y aprobada contra contenedor `postgres:16-alpine` en Docker).
-2. **Protección de rama `main` en GitHub:** requiere configuración directa en GitHub (`Settings > Branches`) con credenciales de propietario del repositorio (`gh` CLI no instalado).
+### 2.3 Pendientes externos fuera de código
+1. **Protección de rama `main` en GitHub:** requiere configuración directa en GitHub (`Settings > Branches`) con credenciales de propietario del repositorio.
