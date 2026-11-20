@@ -1,13 +1,11 @@
 services:
   # ============================================================================
-  # 1. Base de Datos Relacional (PostgreSQL 16)
+  # 1. Base de Datos Relacional (PostgreSQL 16 - solo red interna)
   # ============================================================================
   postgres:
     image: postgres:16-alpine
     container_name: cinetrack_postgres
     restart: unless-stopped
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_DB: ${DB_NAME:-cinetrack_db}
       POSTGRES_USER: ${DB_USER:-cinetrack_user}
@@ -23,14 +21,12 @@ services:
       retries: 5
 
   # ============================================================================
-  # 2. Base de Datos Documental (MongoDB 7)
+  # 2. Base de Datos Documental (MongoDB 7 - solo red interna)
   # ============================================================================
   mongo:
     image: mongo:7
     container_name: cinetrack_mongo
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     environment:
       MONGO_INITDB_DATABASE: ${MONGO_DB:-cinetrack_social}
     volumes:
@@ -53,11 +49,13 @@ services:
     container_name: cinetrack_django
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       SECRET_KEY: ${SECRET_KEY:?Configure SECRET_KEY in .env}
       DEBUG: ${DEBUG:-False}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,django-backend}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://127.0.0.1:8088,http://localhost:8088}
+      SERVE_MEDIA: ${SERVE_MEDIA:-True}
       DB_ENGINE: django.db.backends.postgresql
       DB_NAME: ${DB_NAME:-cinetrack_db}
       DB_USER: ${DB_USER:-cinetrack_user}
@@ -65,7 +63,7 @@ services:
       DB_HOST: postgres
       DB_PORT: 5432
       JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:?Configure JWT_SIGNING_KEY in .env}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://127.0.0.1:8088,http://localhost:8088,http://localhost:5173,http://127.0.0.1:5173}
     depends_on:
       postgres:
         condition: service_healthy
@@ -78,7 +76,7 @@ services:
       retries: 5
 
   # ============================================================================
-  # 4. Backend de Reseñas, Capa Social y Realtime (Node.js / Express / Socket.IO)
+  # 4. Backend de Notas Privadas y Proxy IA (Node.js / Express)
   # ============================================================================
   node-backend:
     build:
@@ -87,7 +85,7 @@ services:
     container_name: cinetrack_node
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     environment:
       PORT: 5000
       NODE_ENV: production
@@ -96,7 +94,7 @@ services:
       DJANGO_API_URL: http://django-backend:8000/api/v1
       AI_SERVICE_URL: http://service-ai:8002/ai
       AI_TIMEOUT_MS: 4000
-      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:5173,http://127.0.0.1:5173}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://127.0.0.1:8088,http://localhost:8088,http://localhost:5173,http://127.0.0.1:5173}
     depends_on:
       mongo:
         condition: service_healthy
@@ -113,7 +111,7 @@ services:
       retries: 5
 
   # ============================================================================
-  # 5. Microservicio de Inteligencia Artificial (FastAPI + Groq Cloud)
+  # 5. Microservicio de Inteligencia Artificial (FastAPI + Groq - solo red interna)
   # ============================================================================
   service-ai:
     build:
@@ -121,8 +119,6 @@ services:
       dockerfile: Dockerfile
     container_name: cinetrack_ai
     restart: unless-stopped
-    ports:
-      - "8002:8002"
     environment:
       PORT: 8002
       ENVIRONMENT: production
@@ -138,22 +134,22 @@ services:
       retries: 5
 
   # ============================================================================
-  # 6. Frontend SPA (React + Vite)
+  # 6. Frontend SPA (React + Vite con URLs relativas build-time)
   # ============================================================================
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_DJANGO_API_URL: ${VITE_DJANGO_API_URL:-/django/api/v1}
+        VITE_DJANGO_GRAPHQL_URL: ${VITE_DJANGO_GRAPHQL_URL:-/django/graphql/}
+        VITE_NODE_API_URL: ${VITE_NODE_API_URL:-/node/api/v1}
+        VITE_NODE_GRAPHQL_URL: ${VITE_NODE_GRAPHQL_URL:-/node/graphql}
+        VITE_NODE_SOCKET_URL: ${VITE_NODE_SOCKET_URL:-}
     container_name: cinetrack_frontend
     restart: unless-stopped
     ports:
-      - "5173:5173"
-    environment:
-      VITE_DJANGO_API_URL: ${VITE_DJANGO_API_URL:-http://localhost:8000/api/v1}
-      VITE_DJANGO_GRAPHQL_URL: ${VITE_DJANGO_GRAPHQL_URL:-http://localhost:8000/graphql/}
-      VITE_NODE_API_URL: ${VITE_NODE_API_URL:-http://localhost:5000/api/v1}
-      VITE_NODE_GRAPHQL_URL: ${VITE_NODE_GRAPHQL_URL:-http://localhost:5000/graphql}
-      VITE_NODE_SOCKET_URL: ${VITE_NODE_SOCKET_URL:-http://localhost:5000}
+      - "127.0.0.1:5173:5173"
     depends_on:
       django-backend:
         condition: service_started
@@ -161,6 +157,32 @@ services:
         condition: service_started
     networks:
       - cinetrack-net
+
+  # ============================================================================
+  # 7. Proxy HTTP único (loopback 127.0.0.1:8088 para Tailscale Serve)
+  # ============================================================================
+  proxy:
+    image: nginx:1.27-alpine
+    container_name: cinetrack_proxy
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PROXY_PORT:-8088}:80"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      frontend:
+        condition: service_started
+      django-backend:
+        condition: service_started
+      node-backend:
+        condition: service_started
+    networks:
+      - cinetrack-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
