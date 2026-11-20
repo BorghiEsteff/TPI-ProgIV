@@ -1,22 +1,30 @@
-# CineTrack — Rama Especializada `backend-node` (Node.js + Express + MongoDB)
+# CineTracker — Rama Especializada `backend-node`
 
-Esta rama contiene una instantanea selectiva y no destructiva desde `main` (`7b7c1712bd3c31e5493ccc414e5f88f3582d5950`) enfocada exclusivamente en el servicio Node.js del ecosistema CineTrack:
+Esta rama contiene exclusivamente el servicio Node.js / Express (`backend-node/`) y su documentación pertinente. No incluye `backend-django/`, `service-ai/`, `frontend/` ni `docker-compose.yml` (disponibles integrados en `main`).
 
-- **`backend-node/`**: API REST en Express, Mongoose (`PersonalNote`, `ActivityLog` y codigo historico de `Review` / `socketService.js`), verificacion JWT (`HS256` emitido por Django), endpoint `/api/v1/recommendations` (con preseleccion sobre catalogo activo, rate limiting y revalidacion), GraphQL (`express-graphql`), pruebas Jest/Supertest, `Dockerfile` y `.env.example`.
-- **`docs/backend-node/`**: Copias de referencia de la documentacion de integracion, contrato JWT, OpenAPI Node y reportes QA pertinentes (la documentacion integral completa permanece en `main`).
+> **Nota de divergencia respecto a `main`:** en esta instantánea de la rama, `backend-node/src/server.js` conserva `origin: process.env.CLIENT_ORIGIN || '*'` en la configuración de Socket.IO, mientras que `main` restringe los orígenes por defecto. Esto no reactiva WatchRooms: `backend-node/src/services/socketService.js` mantiene la funcionalidad deshabilitada.
 
-## Dependencias Externas (No Duplicadas)
+---
 
-Este servicio no puede ejecutarse de forma aislada completa sin sus dependencias externas:
-- **MongoDB (`MONGODB_URI`):** Base documental para notas personales y registros de actividad.
-- **Backend Django (`http://localhost:8000/api/v1`):** Autoridad emisora de JWT (`JWT_SIGNING_KEY` compartido), catalogo publicado y verificacion de propiedad de entradas (`verify-ownership`).
-- **Service AI FastAPI (`http://localhost:8002/ai`):** Inferencia de recomendaciones (`/recommend`) con fallback determinista local en Node si FastAPI no responde.
-- **Restriccion de merge:** No fusionar esta rama completa hacia `main` (contiene unicamente el servicio Node). Integrar cambios puntuales mediante cherry-pick o rutas especificas.
-
-## Ejecucion de Pruebas
+## Arranque desde clon limpio
 
 ```bash
-cd backend-node
+git clone -b backend-node https://github.com/BorghiEsteff/TPI-ProgIV.git
+cd TPI-ProgIV/backend-node
+cp .env.example .env
 npm ci
+npm start
+```
+
+### Variables y dependencias externas en ejecución real
+* **MongoDB 7:** configurar `MONGODB_URI` (ej. `mongodb://127.0.0.1:27017/cinetrack_social`).
+* **JWT compartido:** `JWT_SIGNING_KEY` debe coincidir exactamente con el de `backend-django`.
+* **Servicios externos:** `DJANGO_API_URL` (`http://127.0.0.1:8000/api/v1`) y `AI_SERVICE_URL` (`http://127.0.0.1:8002/ai`).
+* **Health-check:** `GET http://127.0.0.1:5000/health`
+
+### Pruebas autocontenidas
+```bash
+cd backend-node
 npm test
 ```
+Ejecuta las 6 suites Jest (25 tests) con mocks de integración.

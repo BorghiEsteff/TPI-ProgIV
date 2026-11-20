@@ -1,3 +1,5 @@
+> **[HISTÓRICO — FUNCIONALIDAD RETIRADA]** Especificación previa de WatchRooms (Socket.IO) y \/ai/review-guard\. En \main\ vigente estas funciones fueron retiradas/adaptadas a notas privadas y \POST /ai/recommend\ (ver [ARQUITECTURA_AS_BUILT.md](../ARQUITECTURA_AS_BUILT.md)).
+
 # TP 3: Especificación de WatchRooms (Socket.IO) e Integración con Microservicio IA
 
 ## 1. Módulo de Tiempo Real: WatchRooms (`Socket.IO 4`)
