@@ -138,3 +138,4 @@ docker compose up --build
 * Matriz de cumplimiento TP0–TP5 y trazabilidad TDD: [docs/CUMPLIMIENTO_TP0_TP5.md](docs/CUMPLIMIENTO_TP0_TP5.md)
 * Contratos OpenAPI vigentes: [docs/tp-4-contenedores-despliegue/openapi-django.json](docs/tp-4-contenedores-despliegue/openapi-django.json) y [docs/tp-4-contenedores-despliegue/openapi.json](docs/tp-4-contenedores-despliegue/openapi.json)
 * Índice de pruebas y evidencias QA: [docs/qa/INDICE_PRUEBAS_Y_EVIDENCIAS.md](docs/qa/INDICE_PRUEBAS_Y_EVIDENCIAS.md)
+* Acceso privado multi-dispositivo con Tailscale Serve: [docs/TAILSCALE_ACCESO_PRIVADO.md](docs/TAILSCALE_ACCESO_PRIVADO.md) y [docs/qa/QA_TAILSCALE_MULTIDISPOSITIVO.md](docs/qa/QA_TAILSCALE_MULTIDISPOSITIVO.md)
