@@ -91,20 +91,15 @@ class Query(graphene.ObjectType):
     )
 
     def resolve_all_media_items(self, info, media_type=None, genre_id=None, search=None):
+        from catalog.search import search_media_queryset
+
         qs = MediaItem.objects.prefetch_related("genres", "seasons__episodes").filter(is_active=True)
         if media_type:
             qs = qs.filter(media_type=media_type.upper())
         if genre_id is not None:
             qs = qs.filter(genres__id=genre_id).distinct()
         if search:
-            term = search.strip()
-            if term:
-                qs = qs.filter(
-                    Q(title__icontains=term)
-                    | Q(synopsis__icontains=term)
-                    | Q(producer__icontains=term)
-                    | Q(country_of_origin__icontains=term)
-                )
+            qs = search_media_queryset(qs, search)
         return qs
 
     def resolve_media_item_by_id(self, info, id):

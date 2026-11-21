@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Badge,
@@ -45,9 +45,12 @@ const MyTrackingPage = () => {
   const [notesByTrackingId, setNotesByTrackingId] = useState({});
   const [activeStatusFilter, setActiveStatusFilter] = useState('TODOS');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [summaryCounts, setSummaryCounts] = useState(null);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 20;
+  const requestSeqRef = useRef(0);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -60,18 +63,40 @@ const MyTrackingPage = () => {
   const [deleting, setDeleting] = useState(false);
   const [draftChapterById, setDraftChapterById] = useState({});
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const loadTracking = useCallback(async (targetPage = page) => {
+    const seq = ++requestSeqRef.current;
     setLoading(true);
     setError(null);
     try {
-      const [{ data }, recList] = await Promise.all([
-        trackingService.getMyTracking({ page: targetPage, page_size: pageSize }),
+      const params = { page: targetPage, page_size: pageSize };
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (activeStatusFilter === 'FAVORITOS') {
+        params.is_favorite = true;
+      } else if (activeStatusFilter !== 'TODOS') {
+        params.status = activeStatusFilter;
+      }
+
+      const [{ data }, recList, summary] = await Promise.all([
+        trackingService.getMyTracking(params),
         trackingService.getReconciliations().catch(() => []),
+        trackingService
+          .getTrackingSummary(debouncedSearch ? { search: debouncedSearch } : {})
+          .catch(() => null),
       ]);
+      if (seq !== requestSeqRef.current) return;
+
       const list = Array.isArray(data) ? data : data?.results || [];
       setRecords(list);
       setTotalCount(Array.isArray(data) ? list.length : data?.count ?? list.length);
       setReconciliations(recList);
+      if (summary) setSummaryCounts(summary);
 
       const ids = [
         ...list.map((item) => item.id),
@@ -80,6 +105,7 @@ const MyTrackingPage = () => {
       if (ids.length > 0) {
         try {
           const notes = await personalNoteService.getNotesBatch(ids);
+          if (seq !== requestSeqRef.current) return;
           const map = {};
           notes.forEach((n) => {
             map[n.trackingEntryId] = n;
@@ -90,11 +116,14 @@ const MyTrackingPage = () => {
         }
       }
     } catch (err) {
+      if (seq !== requestSeqRef.current) return;
       setError(err);
     } finally {
-      setLoading(false);
+      if (seq === requestSeqRef.current) {
+        setLoading(false);
+      }
     }
-  }, [page]);
+  }, [page, debouncedSearch, activeStatusFilter]);
 
   useEffect(() => {
     loadTracking(page);
@@ -183,6 +212,7 @@ const MyTrackingPage = () => {
   };
 
   const countsByStatus = useMemo(() => {
+    if (summaryCounts) return summaryCounts;
     const counts = {
       TODOS: records.length,
       PENDIENTE: 0,
@@ -197,25 +227,10 @@ const MyTrackingPage = () => {
       if (item.is_favorite) counts.FAVORITOS += 1;
     });
     return counts;
-  }, [records]);
+  }, [summaryCounts, records]);
 
-  const filteredRecords = useMemo(() => {
-    return records.filter((item) => {
-      if (activeStatusFilter === 'FAVORITOS' && !item.is_favorite) return false;
-      if (
-        activeStatusFilter !== 'TODOS' &&
-        activeStatusFilter !== 'FAVORITOS' &&
-        String(item.status || '').toUpperCase() !== activeStatusFilter
-      ) {
-        return false;
-      }
-      if (searchTerm.trim()) {
-        const title = (item.display_title || item.media_item_detail?.title || '').toLowerCase();
-        if (!title.includes(searchTerm.trim().toLowerCase())) return false;
-      }
-      return true;
-    });
-  }, [records, activeStatusFilter, searchTerm]);
+  const filteredRecords = records;
+  const hasActiveFilters = Boolean(searchTerm.trim() || debouncedSearch || activeStatusFilter !== 'TODOS');
 
   return (
     <Container className="py-4">
@@ -302,7 +317,7 @@ const MyTrackingPage = () => {
         </Alert>
       )}
 
-      {!loading && !error && records.length > 0 && (
+      {!loading && !error && (records.length > 0 || hasActiveFilters) && (
         <Row className="g-2 align-items-center mb-4">
           <Col lg={8} className="overflow-auto">
             <ButtonGroup size="sm">
@@ -310,14 +325,17 @@ const MyTrackingPage = () => {
                 <Button
                   key={statusKey}
                   variant={activeStatusFilter === statusKey ? 'dark' : 'outline-secondary'}
-                  onClick={() => setActiveStatusFilter(statusKey)}
+                  onClick={() => {
+                    setActiveStatusFilter(statusKey);
+                    setPage(1);
+                  }}
                 >
                   {statusKey}{' '}
                   <Badge
                     bg={activeStatusFilter === statusKey ? 'light' : 'secondary'}
                     text={activeStatusFilter === statusKey ? 'dark' : 'light'}
                   >
-                    {countsByStatus[statusKey]}
+                    {countsByStatus[statusKey] ?? 0}
                   </Badge>
                 </Button>
               ))}
@@ -329,7 +347,10 @@ const MyTrackingPage = () => {
               type="search"
               placeholder="Buscar en mi diario..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
             />
           </Col>
         </Row>
@@ -338,7 +359,7 @@ const MyTrackingPage = () => {
       {loading && <LoadingSpinner message="Cargando tu diario privado..." />}
       {!loading && error && <ErrorMessage error={error} onRetry={loadTracking} />}
 
-      {!loading && !error && records.length === 0 && (
+      {!loading && !error && records.length === 0 && !hasActiveFilters && (
         <EmptyState
           title="Tu diario está vacío"
           description="Explora el catálogo público o agrega una obra nueva para registrar tu progreso y notas privadas."
@@ -347,7 +368,7 @@ const MyTrackingPage = () => {
         />
       )}
 
-      {!loading && !error && records.length > 0 && filteredRecords.length === 0 && (
+      {!loading && !error && filteredRecords.length === 0 && hasActiveFilters && (
         <EmptyState
           title="Sin coincidencias"
           description="No hay entradas que coincidan con los filtros seleccionados."
@@ -355,6 +376,8 @@ const MyTrackingPage = () => {
           onAction={() => {
             setActiveStatusFilter('TODOS');
             setSearchTerm('');
+            setDebouncedSearch('');
+            setPage(1);
           }}
         />
       )}
