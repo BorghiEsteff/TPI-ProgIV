@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
 from catalog.models import MediaItem
+from catalog.search import normalize_search_text, search_tracking_queryset
 from .models import UserProgress
 from .serializers import UserProgressSerializer
 
@@ -24,6 +25,37 @@ class UserProgressViewSet(viewsets.ModelViewSet):
     filterset_fields = ["media_item", "status", "is_favorite"]
     ordering_fields = ["updated_at", "started_at", "finished_at"]
     ordering = ["-updated_at"]
+
+    def filter_queryset(self, queryset):
+        qs = DjangoFilterBackend().filter_queryset(self.request, queryset, self)
+        raw_search = self.request.query_params.get("search")
+        if raw_search and normalize_search_text(raw_search):
+            return search_tracking_queryset(qs, raw_search)
+        return filters.OrderingFilter().filter_queryset(self.request, qs, self)
+
+    @action(detail=False, methods=["get"], url_path="summary")
+    def summary(self, request):
+        """Devuelve conteos globales por estado/favoritos para el usuario autenticado."""
+        qs = self.get_queryset()
+        raw_search = request.query_params.get("search")
+        if raw_search and normalize_search_text(raw_search):
+            qs = search_tracking_queryset(qs, raw_search)
+        counts = {
+            "TODOS": 0,
+            "PENDIENTE": 0,
+            "VIENDO": 0,
+            "VISTO": 0,
+            "ABANDONADO": 0,
+            "FAVORITOS": 0,
+        }
+        for row_status, is_fav in qs.values_list("status", "is_favorite"):
+            counts["TODOS"] += 1
+            key = str(row_status or "PENDIENTE").upper()
+            if key in counts:
+                counts[key] += 1
+            if is_fav:
+                counts["FAVORITOS"] += 1
+        return Response(counts, status=status.HTTP_200_OK)
 
     def get_queryset(self):
         user = self.request.user

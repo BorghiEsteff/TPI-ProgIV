@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Badge, Button, Form, Spinner } from 'react-bootstrap';
 import * as catalogService from '../../services/catalogService';
+import { normalizeSearchText } from '../../utils/textSearch';
 
 const GenreMultiSelect = ({
   genres: providedGenres = null,
@@ -49,9 +50,9 @@ const GenreMultiSelect = ({
   );
 
   const filteredGenres = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = normalizeSearchText(search);
     if (!q) return genres;
-    return genres.filter((g) => g.name.toLowerCase().includes(q));
+    return genres.filter((g) => normalizeSearchText(g.name).includes(q));
   }, [genres, search]);
 
   const selectedGenres = useMemo(
