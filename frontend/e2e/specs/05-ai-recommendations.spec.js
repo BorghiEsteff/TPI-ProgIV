@@ -3,12 +3,21 @@ import { NODE_API_URL, apiLogin, uiLogin } from '../fixtures/apiClients.js';
 import { QA_MEDIA } from '../fixtures/testData.js';
 import { QA_USERS } from '../fixtures/users.js';
 
-test.describe('Chat de recomendaciones IA (E2E-27..E2E-31)', () => {
-  test('E2E-27..E2E-29: Escenarios deterministas (fallback degraded:true, IA normal degraded:false y error proveedor)', async ({ page }) => {
+test.describe('Chat de recomendaciones IA (acceso flotante único)', () => {
+  test('E2E-27..E2E-29: /recommendations redirige a / y el panel flotante cubre degraded:true, degraded:false y 503', async ({
+    page,
+  }) => {
     await uiLogin(page, QA_USERS.A);
     await page.goto('/recommendations');
+    await expect(page).toHaveURL(/\/$/);
 
-    // Escenario A: Fallback determinista (degraded: true -> muestra badge "Modo limitado")
+    // El navbar ya no muestra un enlace independiente "Recomendaciones IA"
+    await expect(page.getByRole('link', { name: /Recomendaciones IA/i })).toHaveCount(0);
+
+    await page.getByTestId('clapperboard-launcher').click();
+    await expect(page.getByTestId('floating-ai-panel')).toBeVisible();
+
+    // Escenario A: Fallback determinista (degraded: true)
     await page.route('**/api/v1/recommendations', async (route) => {
       const body = route.request().postDataJSON() || {};
       if (String(body.prompt || '').includes('2099')) {
@@ -41,18 +50,19 @@ test.describe('Chat de recomendaciones IA (E2E-27..E2E-31)', () => {
       });
     });
 
-    await page.getByPlaceholder(/kdrama romántico/i).fill('quiero un kdrama romántico del 2026');
-    await page.getByRole('button', { name: /Pedir recomendaciones/i }).click();
+    const promptInput = page.getByLabel(/Describe qué querés ver en CineTrack/i);
+    await promptInput.fill('quiero un kdrama romántico del 2026');
+    await page.getByRole('button', { name: /Enviar/i }).click();
 
-    await expect(page.getByText(QA_MEDIA.KDRAMA_2026)).toBeVisible();
-    await expect(page.getByText('Modo limitado')).toBeVisible();
+    await expect(page.getByTestId('floating-ai-panel').getByText(QA_MEDIA.KDRAMA_2026)).toBeVisible();
+    await expect(page.getByText(/Modo limitado:/i)).toBeVisible();
 
     // Sin coincidencias
-    await page.getByPlaceholder(/kdrama romántico/i).fill('quiero un kdrama romántico del 2099');
-    await page.getByRole('button', { name: /Pedir recomendaciones/i }).click();
+    await promptInput.fill('quiero un kdrama romántico del 2099');
+    await page.getByRole('button', { name: /Enviar/i }).click();
     await expect(page.getByText(/No tengo coincidencias de ese tipo en el catálogo/i)).toBeVisible();
 
-    // Escenario B: Respuesta IA exitosa (degraded: false -> NO muestra badge "Modo limitado")
+    // Escenario B: Respuesta IA exitosa (degraded: false -> desaparece Modo limitado)
     await page.unroute('**/api/v1/recommendations');
     await page.route('**/api/v1/recommendations', async (route) => {
       await route.fulfill({
@@ -73,10 +83,10 @@ test.describe('Chat de recomendaciones IA (E2E-27..E2E-31)', () => {
       });
     });
 
-    await page.getByPlaceholder(/kdrama romántico/i).fill('recomendame un romance coreano');
-    await page.getByRole('button', { name: /Pedir recomendaciones/i }).click();
-    await expect(page.getByText(QA_MEDIA.KDRAMA_2026)).toBeVisible();
-    await expect(page.getByText('Modo limitado')).toHaveCount(0);
+    await promptInput.fill('recomendame un romance coreano');
+    await page.getByRole('button', { name: /Enviar/i }).click();
+    await expect(page.getByTestId('floating-ai-panel').getByText(QA_MEDIA.KDRAMA_2026).last()).toBeVisible();
+    await expect(page.getByText(/Modo limitado:/i)).toHaveCount(0);
 
     // Escenario C: Error controlado de proveedor (503) sin fuga técnica
     await page.unroute('**/api/v1/recommendations');
@@ -90,31 +100,34 @@ test.describe('Chat de recomendaciones IA (E2E-27..E2E-31)', () => {
       });
     });
 
-    await page.getByPlaceholder(/kdrama romántico/i).fill('algo de ciencia ficción');
-    await page.getByRole('button', { name: /Pedir recomendaciones/i }).click();
-    await expect(page.getByText(/no está disponible temporalmente/i)).toBeVisible();
+    await promptInput.fill('algo de ciencia ficción');
+    await page.getByRole('button', { name: /Enviar/i }).click();
+    await expect(page.getByText(/no está disponible en este momento/i)).toBeVisible();
   });
 
-  test('E2E-30, E2E-31: Visitante 401, prompt > 500 chars 422 y sin fuga de obras ocultas', async ({ request }) => {
+  test('E2E-30, E2E-31: Visitante 401, prompt > 500 chars 422 y sin fuga de obras ocultas', async ({
+    request,
+  }) => {
     const anonRes = await request.post(`${NODE_API_URL}/recommendations`, {
       data: { prompt: 'kdrama' },
     });
     expect(anonRes.status()).toBe(401);
 
-    const loginA = await apiLogin(request, QA_USERS.A);
+    const { access: accessToken } = await apiLogin(request, QA_USERS.A);
     const longRes = await request.post(`${NODE_API_URL}/recommendations`, {
-      headers: { Authorization: `Bearer ${loginA.access}` },
+      headers: { Authorization: `Bearer ${accessToken}` },
       data: { prompt: 'a'.repeat(501) },
     });
     expect(longRes.status()).toBe(422);
 
     const validRes = await request.post(`${NODE_API_URL}/recommendations`, {
-      headers: { Authorization: `Bearer ${loginA.access}` },
-      data: { prompt: 'Obra Oculta QA' },
+      headers: { Authorization: `Bearer ${accessToken}` },
+      data: { prompt: 'recomendame un romance o drama del catalogo' },
     });
     expect(validRes.status()).toBe(200);
     const body = await validRes.json();
-    const titles = (body.recommendations || []).map((r) => r.title || '');
-    expect(titles).not.toContain('Obra Oculta QA');
+    const recTitles = (body.recommendations || []).map((r) => r.title);
+    expect(recTitles).not.toContain(QA_MEDIA.PENDING_ISOLATED_A);
+    expect(recTitles).not.toContain(QA_MEDIA.PENDING_ISOLATED_B);
   });
 });

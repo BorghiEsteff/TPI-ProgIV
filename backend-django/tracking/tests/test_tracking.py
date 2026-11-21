@@ -93,3 +93,87 @@ class TestCineTrackModelsAndSerializers:
                 status=UserProgress.WatchStatus.VISTO,
                 current_seconds=1500,
             )
+
+    def test_update_preserves_exact_seconds_when_not_sent(self):
+        """P0.4: Editar plataforma u otro campo sin reenviar current_seconds preserva segundos exactos (ej: 01:24:35 = 5075)."""
+        progress = UserProgress.objects.create(
+            user=self.user,
+            media_item=self.pelicula,
+            status=UserProgress.WatchStatus.VIENDO,
+            current_seconds=5075,
+            watch_platform="Netflix",
+        )
+        serializer = UserProgressSerializer(
+            instance=progress,
+            data={"watch_platform": "Disney+"},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.watch_platform == "Disney+"
+        assert updated.current_seconds == 5075
+
+    def test_updating_already_visto_series_does_not_rewrite_episode_history(self):
+        """P0.4: Editar plataforma o tiempo en una serie ya VISTO no duplica ni reescribe episode_history."""
+        original_watched_at = "2026-10-01T12:00:00+00:00"
+        initial_history = [
+            {
+                "season": 1,
+                "episode": 5,
+                "status": "VISTO",
+                "seconds": 2700,
+                "watched_at": original_watched_at,
+            }
+        ]
+        progress = UserProgress.objects.create(
+            user=self.user,
+            media_item=self.serie,
+            status=UserProgress.WatchStatus.VISTO,
+            current_season_number=1,
+            current_episode_number=5,
+            current_seconds=2700,
+            watch_platform="Netflix",
+            finished_at=timezone.now(),
+            episode_history=initial_history,
+        )
+        serializer = UserProgressSerializer(
+            instance=progress,
+            data={"watch_platform": "Prime Video"},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.watch_platform == "Prime Video"
+        assert updated.episode_history == initial_history
+
+    def test_reverting_visto_to_viendo_clears_finished_at_and_keeps_history(self):
+        """P0.4: Pasar de VISTO a VIENDO limpia finished_at pero conserva episode_history."""
+        initial_history = [
+            {
+                "season": 1,
+                "episode": 3,
+                "status": "VISTO",
+                "seconds": 1800,
+                "watched_at": "2026-10-01T12:00:00+00:00",
+            }
+        ]
+        progress = UserProgress.objects.create(
+            user=self.user,
+            media_item=self.serie,
+            status=UserProgress.WatchStatus.VISTO,
+            current_season_number=1,
+            current_episode_number=3,
+            current_seconds=1800,
+            finished_at=timezone.now(),
+            episode_history=initial_history,
+        )
+        serializer = UserProgressSerializer(
+            instance=progress,
+            data={"status": UserProgress.WatchStatus.VIENDO},
+            partial=True,
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        assert updated.status == UserProgress.WatchStatus.VIENDO
+        assert updated.finished_at is None
+        assert updated.episode_history == initial_history

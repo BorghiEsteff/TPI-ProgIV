@@ -11,10 +11,7 @@ import AdminSubmissionsPage from './pages/AdminSubmissionsPage';
 import CatalogPage from './pages/CatalogPage';
 import LoginPage from './pages/LoginPage';
 import MediaDetailPage from './pages/MediaDetailPage';
-import MySubmissionsPage from './pages/MySubmissionsPage';
 import MyTrackingPage from './pages/MyTrackingPage';
-import NewEntryPage from './pages/NewEntryPage';
-import RecommendationsPage from './pages/RecommendationsPage';
 import RegisterPage from './pages/RegisterPage';
 
 function App() {
@@ -29,13 +26,16 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/media/:id" element={<MediaDetailPage />} />
+              <Route path="/recommendations" element={<Navigate to="/" replace />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/my-tracking" element={<MyTrackingPage />} />
                 <Route path="/my-cinetrack" element={<MyTrackingPage />} />
-                <Route path="/new-entry" element={<NewEntryPage />} />
-                <Route path="/my-submissions" element={<MySubmissionsPage />} />
-                <Route path="/recommendations" element={<RecommendationsPage />} />
+                <Route path="/new-entry" element={<Navigate to="/my-tracking?view=add" replace />} />
+                <Route
+                  path="/my-submissions"
+                  element={<Navigate to="/my-tracking?view=proposals" replace />}
+                />
                 <Route
                   path="/admin/submissions"
                   element={

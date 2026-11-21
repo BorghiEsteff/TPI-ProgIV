@@ -30,7 +30,7 @@ test.describe('Propuestas, duplicados, moderación y caso Matrix (E2E-16..E2E-26
     await pageA.locator('[data-genre-name="Ciencia Ficción"]').click();
     await pageA.locator('[data-genre-name="Acción"]').click();
     await pageA.getByRole('button', { name: /Guardar en Mi CineTrack/i }).click();
-    await expect(pageA.getByText(/pendiente de revisi[oó]n/i)).toBeVisible();
+    await expect(pageA.getByText(/¡Guardado en tu diario personal!/i)).toBeVisible();
 
     // A va a su diario y guarda 5 estrellas, comentario y favorito
     await pageA.goto('/my-tracking');
@@ -50,7 +50,7 @@ test.describe('Propuestas, duplicados, moderación y caso Matrix (E2E-16..E2E-26
     await pageB.locator('input[type="file"]').setInputFiles(posterBPath);
     await pageB.locator('[data-genre-name="Ciencia Ficción"]').click();
     await pageB.getByRole('button', { name: /Guardar en Mi CineTrack/i }).click();
-    await expect(pageB.getByText(/pendiente de revisi[oó]n/i)).toBeVisible();
+    await expect(pageB.getByText(/¡Guardado en tu diario personal!/i)).toBeVisible();
 
     await pageB.goto('/my-tracking');
     const cardB = pageB.locator('.card', { hasText: 'The Matrix' }).first();
@@ -101,13 +101,13 @@ test.describe('Propuestas, duplicados, moderación y caso Matrix (E2E-16..E2E-26
     // 6. A y B recargan su diario y conservan sus plataformas, estrellas y comentarios intactos
     await pageA.reload();
     const reloadedCardA = pageA.locator('.card', { hasText: 'Matrix' }).first();
-    await expect(reloadedCardA.getByPlaceholder(/Ej\. Netflix, HBO, Cine/i)).toHaveValue('HBO / Max');
+    await expect(reloadedCardA).toContainText('HBO / Max');
     await expect(reloadedCardA.getByPlaceholder(/Escribe tus notas personales/i)).toHaveValue('Me encantó A');
     await pageA.screenshot({ path: '../docs/qa/evidence/matrix-diary-a.png', fullPage: true });
 
     await pageB.reload();
     const reloadedCardB = pageB.locator('.card', { hasText: 'Matrix' }).first();
-    await expect(reloadedCardB.getByPlaceholder(/Ej\. Netflix, HBO, Cine/i)).toHaveValue('Netflix');
+    await expect(reloadedCardB).toContainText('Netflix');
     await expect(reloadedCardB.getByPlaceholder(/Escribe tus notas personales/i)).toHaveValue('Nota privada B');
     await pageB.screenshot({ path: '../docs/qa/evidence/matrix-diary-b.png', fullPage: true });
 
@@ -119,7 +119,7 @@ test.describe('Propuestas, duplicados, moderación y caso Matrix (E2E-16..E2E-26
     await pageC.getByRole('button', { name: /Agregar a Mi CineTrack/i }).click();
     await pageC.goto('/my-tracking');
     const cardC = pageC.locator('.card', { hasText: 'Matrix' }).first();
-    await expect(cardC.getByPlaceholder(/Ej\. Netflix, HBO, Cine/i)).toHaveValue('');
+    await expect(cardC).toContainText('Sin definir');
     await expect(cardC.getByPlaceholder(/Escribe tus notas personales/i)).toHaveValue('');
 
     // Limpiar acceso directo de ADMIN sobre endpoints de notas privadas (8)

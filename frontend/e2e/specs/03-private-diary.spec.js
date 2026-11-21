@@ -32,12 +32,13 @@ test.describe('Diario privado, plataformas, notas y aislamiento (E2E-07..E2E-15)
     expect(idempotentRes.status()).toBe(200);
     expect((await idempotentRes.json()).id).toBe(entryA.id);
 
-    // A guarda plataforma HBO, favorito, 00:42:35, 5 estrellas y comentario privado en UI
+    // A guarda plataforma HBO, favorito, 5 estrellas y comentario privado en UI
     await pageA.goto('/my-tracking');
     const cardA = pageA.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER });
-    await cardA.getByPlaceholder(/Ej\. Netflix, HBO, Cine/i).fill('HBO');
-    await cardA.getByPlaceholder(/Ej\. Netflix, HBO, Cine/i).blur();
-    await cardA.getByRole('button', { name: /Favorito/i }).click();
+    await cardA.getByRole('button', { name: /Editar progreso/i }).click();
+    await cardA.getByLabel(/Plataforma/i).fill('HBO');
+    await cardA.getByRole('button', { name: /Guardar progreso/i }).click();
+    await cardA.getByRole('button', { name: /Favorito/i }).first().click();
     await cardA.getByRole('button', { name: '5 estrellas' }).click();
     await cardA.getByPlaceholder(/Escribe tus notas personales/i).fill('Nota privada de A en HBO');
     await cardA.getByRole('button', { name: /Guardar nota privada/i }).click();
@@ -49,8 +50,9 @@ test.describe('Diario privado, plataformas, notas y aislamiento (E2E-07..E2E-15)
     await pageB.getByRole('button', { name: /Agregar a Mi CineTrack/i }).click();
     await pageB.goto('/my-tracking');
     const cardB = pageB.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER });
-    await cardB.getByPlaceholder(/Ej\. Netflix, HBO, Cine/i).fill('Netflix');
-    await cardB.getByPlaceholder(/Ej\. Netflix, HBO, Cine/i).blur();
+    await cardB.getByRole('button', { name: /Editar progreso/i }).click();
+    await cardB.getByLabel(/Plataforma/i).fill('Netflix');
+    await cardB.getByRole('button', { name: /Guardar progreso/i }).click();
     await cardB.getByRole('button', { name: '3 estrellas' }).click();
     await cardB.getByPlaceholder(/Escribe tus notas personales/i).fill('Nota privada de B en Netflix');
     await cardB.getByRole('button', { name: /Guardar nota privada/i }).click();
@@ -59,13 +61,13 @@ test.describe('Diario privado, plataformas, notas y aislamiento (E2E-07..E2E-15)
     // Recargar ambas páginas y verificar independencia total (E2E-09)
     await pageA.reload();
     await expect(pageA.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER }).getByPlaceholder(/Escribe tus notas personales/i)).toHaveValue('Nota privada de A en HBO');
-    await expect(pageA.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER }).getByPlaceholder(/Ej\. Netflix, HBO, Cine/i)).toHaveValue('HBO');
+    await expect(pageA.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER })).toContainText('HBO');
 
     await pageB.reload();
     await expect(pageB.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER }).getByPlaceholder(/Escribe tus notas personales/i)).toHaveValue('Nota privada de B en Netflix');
-    await expect(pageB.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER }).getByPlaceholder(/Ej\. Netflix, HBO, Cine/i)).toHaveValue('Netflix');
+    await expect(pageB.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER })).toContainText('Netflix');
 
-    // E2E-11: Progreso exacto en segundos (00:42:35 = 2555s) y serie temporada 2 ep 4 00:17:09 = 1029s via API + UI
+    // E2E-11: Progreso exacto en segundos (00:42:35 = 2555s) via API
     const patchMovie = await request.patch(`${DJANGO_API_URL}/tracking/${entryA.id}/`, {
       headers: { Authorization: `Bearer ${loginA.access}` },
       data: { current_seconds: 2555, status: 'VISTO' },
@@ -75,10 +77,13 @@ test.describe('Diario privado, plataformas, notas y aislamiento (E2E-07..E2E-15)
 
     // E2E-13: B filtra y quita su entrada; la de A y el catálogo público siguen intactos
     await pageB.getByPlaceholder(/Buscar en mi diario/i).fill('Blade');
-    await expect(pageB.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER })).toHaveCount(1);
-    await pageB.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER }).getByRole('button', { name: 'Quitar', exact: true }).click();
+    const filteredCardB = pageB.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER });
+    await expect(filteredCardB).toHaveCount(1);
+    await filteredCardB.getByRole('button', { name: /Editar progreso/i }).click();
+    await filteredCardB.getByRole('button', { name: /Quitar del diario/i }).click();
     await pageB.getByRole('button', { name: /S[ií], quitar/i }).click();
-    await expect(pageB.getByText(/Tu diario est[aá] vac[ií]o/i)).toBeVisible();
+    await expect(pageB.getByText(/Obra quitada de tu diario personal/i)).toBeVisible();
+    await expect(pageB.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER })).toHaveCount(0);
 
     await pageA.reload();
     await expect(pageA.locator('.card', { hasText: QA_MEDIA.BLADE_RUNNER })).toBeVisible();

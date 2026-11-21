@@ -1,5 +1,7 @@
 # Matriz E2E QA — CineTrack
 
+> **[CORTE VIGENTE — 21/11/2026]** Además de la matriz histórica E2E-01..E2E-40, la rama `feat/unified-cinetrack-search-ai` incorpora las suites `11-tolerant-search.spec.js` y `12-unified-my-cinetrack.spec.js` (25 casos en `chromium-desktop` y 25 en `chromium-mobile`), junto con los reportes dedicados [QA_BUSCADOR_UNIVERSAL_LOTE02_2026-11-21.md](QA_BUSCADOR_UNIVERSAL_LOTE02_2026-11-21.md), [QA_CHATBOT_IA_UNICO_ACCESO_2026-11-21.md](QA_CHATBOT_IA_UNICO_ACCESO_2026-11-21.md) y [QA_MI_CINETRACK_UNIFICADO_2026-11-21.md](QA_MI_CINETRACK_UNIFICADO_2026-11-21.md).
+
 > **[HISTÓRICO — CORTE 13–14/11/2026]** Esta matriz documenta los 16 casos base (`01` a `07`). En el cierre vigente (`main`, 19–20/11/2026) se sumaron los specs `08-categories-and-visual-qa.spec.js`, `09-auth-roles-regression.spec.js` y `10-floating-ai-clapper.spec.js`, alcanzando **22 casos en `chromium-desktop` y 22 en `chromium-mobile`** (ver [ACTA_VALIDACION_FINAL.md](ACTA_VALIDACION_FINAL.md)).
 
 Ejecutada contra servicios locales reales en entorno QA aislado (`SQLITE_DB_NAME=db.qa.sqlite3`, `MONGODB_URI=mongodb://127.0.0.1:27017/cinetrack_qa`, `GROQ_API_KEY=""`).
