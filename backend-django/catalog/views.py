@@ -20,6 +20,7 @@ from .serializers import (
     EpisodeSerializer,
 )
 from .filters import MediaItemFilter
+from .search import normalize_search_text, search_media_queryset
 from .utils import find_duplicate_candidates, normalize_genre_name, validate_safe_poster_url
 
 
@@ -80,11 +81,17 @@ class GenreViewSet(viewsets.ModelViewSet):
 class MediaItemViewSet(viewsets.ModelViewSet):
     serializer_class = MediaItemSerializer
     permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = MediaItemFilter
-    search_fields = ["title", "producer", "synopsis", "country_of_origin"]
     ordering_fields = ["release_date", "release_year", "title"]
     ordering = ["-release_date", "title"]
+
+    def filter_queryset(self, queryset):
+        qs = DjangoFilterBackend().filter_queryset(self.request, queryset, self)
+        raw_search = self.request.query_params.get("search")
+        if raw_search and normalize_search_text(raw_search):
+            return search_media_queryset(qs, raw_search)
+        return filters.OrderingFilter().filter_queryset(self.request, qs, self)
 
     def get_queryset(self):
         qs = MediaItem.objects.prefetch_related("genres", "seasons__episodes")
