@@ -8,9 +8,22 @@ export const getMyTracking = async (params = {}) => {
   };
 };
 
+export const getTrackingSummary = async (params = {}) => {
+  const response = await djangoClient.get('/tracking/summary/', { params });
+  return response.data;
+};
+
 export const createTracking = async (payload) => {
   const response = await djangoClient.post('/tracking/', payload);
   return response.data;
+};
+
+export const createTrackingWithMeta = async (payload) => {
+  const response = await djangoClient.post('/tracking/', payload);
+  return {
+    data: response.data,
+    created: response.status === 201,
+  };
 };
 
 export const updateTrackingSeconds = async (id, payload) => {

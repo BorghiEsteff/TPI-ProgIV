@@ -34,8 +34,11 @@ test.describe('Catálogo público y control de visitante (E2E-01, E2E-02)', () =
     expect(pageErrors).toEqual([]);
   });
 
-  test('E2E-02: Invitada no puede visitar rutas privadas ni acceder a APIs protegidas', async ({ page, request }) => {
-    for (const privatePath of ['/my-tracking', '/new-entry', '/recommendations', '/admin/submissions']) {
+  test('E2E-02: Invitada no puede visitar rutas privadas ni acceder a APIs protegidas y /recommendations redirige a /', async ({ page, request }) => {
+    await page.goto('/recommendations');
+    await expect(page).toHaveURL(/\/$/);
+
+    for (const privatePath of ['/my-tracking', '/new-entry', '/my-submissions', '/admin/submissions']) {
       await page.goto(privatePath);
       await expect(page).toHaveURL(/\/login/);
     }

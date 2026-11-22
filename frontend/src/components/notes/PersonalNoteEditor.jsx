@@ -42,7 +42,7 @@ const PersonalNoteEditor = ({
         <Form.Label className="small text-muted mb-1">Comentario personal (opcional)</Form.Label>
         <Form.Control
           as="textarea"
-          rows={2}
+          rows={1}
           maxLength={2000}
           placeholder="Escribe tus notas personales sobre esta obra..."
           value={comment}

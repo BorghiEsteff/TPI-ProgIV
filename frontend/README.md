@@ -44,9 +44,9 @@ npm install
 * `/`: Catálogo público paginado con filtros por tipo, género y búsqueda (`CatalogPage`).
 * `/media/:id`: Ficha técnica de obra, tracking privado y notas personales (`MediaDetailPage`).
 * `/login` y `/register`: Autenticación JWT y registro con rol `USER` (`LoginPage`, `RegisterPage`).
-* `/my-tracking`: Diario personal privado del usuario autenticado (`MyTrackingPage`, protegido).
-* `/new-entry` y `/my-submissions`: Propuesta de nuevas obras y seguimiento de estado (`NewEntryPage`, `MySubmissionsPage`, protegido).
-* `/recommendations`: Vista dedicada de recomendaciones IA (`RecommendationsPage`, protegido).
+* `/my-tracking` (alias `/my-cinetrack`): Diario personal privado unificado con tabs **Mis obras**, **Mis propuestas** y **+ Agregar obra** (`MyTrackingPage`, protegido).
+* `/new-entry` y `/my-submissions`: Redirecciones de compatibilidad hacia `/my-tracking?view=add` y `/my-tracking?view=proposals`.
+* `/recommendations`: Redirige a `/`. El acceso visual único al asistente IA es el lanzador flotante `FloatingRecommendationChat` + `ClapperboardLauncher`.
 * `/admin/submissions`: Cola de moderación, publicación, fusión de duplicados y rechazo (`AdminSubmissionsPage`, restringido a rol `ADMIN`).
 * Componente global flotante: `FloatingRecommendationChat` + `ClapperboardLauncher` (visible para usuarios autenticados en todas las vistas).
 

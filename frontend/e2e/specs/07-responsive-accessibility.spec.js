@@ -3,7 +3,9 @@ import { uiLogin } from '../fixtures/apiClients.js';
 import { QA_USERS } from '../fixtures/users.js';
 
 test.describe('Responsive, accesibilidad y consola limpia (E2E-37..E2E-40)', () => {
-  test('E2E-37..E2E-40: Flujo principal sin overflow horizontal ni errores JS, con controles accesibles por teclado', async ({ page }) => {
+  test('E2E-37..E2E-40: Flujo principal sin overflow horizontal ni errores JS, con controles accesibles por teclado', async ({
+    page,
+  }) => {
     const pageErrors = [];
     page.on('pageerror', (err) => pageErrors.push(err.message));
 
@@ -27,7 +29,9 @@ test.describe('Responsive, accesibilidad y consola limpia (E2E-37..E2E-40)', () 
       await expect(starBtn).toBeFocused();
     }
 
-    await page.goto('/recommendations');
+    // Abrir lanzador flotante de IA y verificar cero overflow horizontal
+    await page.getByTestId('clapperboard-launcher').click();
+    await expect(page.getByTestId('floating-ai-panel')).toBeVisible();
     const hasOverflowRec = await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth + 2
     );
