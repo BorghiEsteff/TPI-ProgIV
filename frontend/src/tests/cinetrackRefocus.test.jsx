@@ -3,9 +3,23 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, test, vi } from 'vitest';
 import PersonalNoteEditor from '../components/notes/PersonalNoteEditor';
 import StarRating from '../components/notes/StarRating';
-import RecommendationChat from '../components/recommendations/RecommendationChat';
+import FloatingRecommendationChat from '../components/recommendations/FloatingRecommendationChat';
+import * as recommendationService from '../services/recommendationService';
+import * as trackingService from '../services/trackingService';
 import RegisterPage from '../pages/RegisterPage';
 import { AuthContext } from '../context/AuthContext';
+
+vi.mock('../services/recommendationService', () => ({
+  askRecommendations: vi.fn(),
+}));
+
+vi.mock('../services/trackingService', () => ({
+  createTracking: vi.fn(),
+}));
+
+if (typeof window !== 'undefined' && !window.HTMLElement.prototype.scrollIntoView) {
+  window.HTMLElement.prototype.scrollIntoView = vi.fn();
+}
 
 describe('Componentes Reenfocados de CineTrack (P3/P5)', () => {
   test('StarRating permite seleccionar 1..5 estrellas y limpiar a null', () => {
@@ -37,8 +51,8 @@ describe('Componentes Reenfocados de CineTrack (P3/P5)', () => {
     });
   });
 
-  test('RecommendationChat muestra recomendaciones reales y permite agregar a Mi CineTrack', async () => {
-    const onAsk = vi.fn().mockResolvedValue({
+  test('FloatingRecommendationChat es el único acceso visual de IA y permite agregar a Mi CineTrack', async () => {
+    recommendationService.askRecommendations.mockResolvedValue({
       message: 'Encontré una serie:',
       degraded: false,
       recommendations: [
@@ -50,26 +64,32 @@ describe('Componentes Reenfocados de CineTrack (P3/P5)', () => {
         },
       ],
     });
-    const onAddToDiary = vi.fn().mockResolvedValue({});
+    trackingService.createTracking.mockResolvedValue({ id: 99 });
 
     render(
       <MemoryRouter>
-        <RecommendationChat onAsk={onAsk} onAddToDiary={onAddToDiary} />
+        <AuthContext.Provider value={{ isAuthenticated: true, user: { id: 1, username: 'ana' } }}>
+          <FloatingRecommendationChat />
+        </AuthContext.Provider>
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText(/kdrama romántico/i), {
+    fireEvent.click(screen.getByTestId('clapperboard-launcher'));
+    fireEvent.change(screen.getByLabelText(/Describe qué querés ver en CineTrack/i), {
       target: { value: 'quiero un kdrama romántico del 2026' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /Pedir recomendaciones/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Enviar/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Amor en Seúl 2026')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Agregar a Mi CineTrack/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar' }));
     await waitFor(() => {
-      expect(onAddToDiary).toHaveBeenCalledWith(12);
+      expect(trackingService.createTracking).toHaveBeenCalledWith({
+        media_item: 12,
+        status: 'PENDIENTE',
+      });
     });
   });
 

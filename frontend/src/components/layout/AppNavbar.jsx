@@ -33,15 +33,6 @@ const AppNavbar = () => {
                 <Nav.Link as={NavLink} to="/my-tracking">
                   Mi CineTrack
                 </Nav.Link>
-                <Nav.Link as={NavLink} to="/new-entry">
-                  Agregar Obra
-                </Nav.Link>
-                <Nav.Link as={NavLink} to="/my-submissions">
-                  Mis Propuestas
-                </Nav.Link>
-                <Nav.Link as={NavLink} to="/recommendations">
-                  Recomendaciones IA
-                </Nav.Link>
                 {role === 'ADMIN' && (
                   <Nav.Link as={NavLink} to="/admin/submissions">
                     Moderación

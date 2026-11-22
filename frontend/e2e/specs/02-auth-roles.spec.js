@@ -26,17 +26,17 @@ test.describe('Autenticación, roles y RBAC (E2E-03..E2E-06)', () => {
     if (await toggler.isVisible()) {
       await toggler.click();
     }
-    await expect(page.getByRole('link', { name: 'Mi CineTrack' })).toBeVisible();
+    await expect(page.locator('#cinetrack-navbar').getByRole('link', { name: 'Mi CineTrack' })).toBeVisible();
 
     await page.reload();
     if (await toggler.isVisible()) {
       await toggler.click();
     }
-    await expect(page.getByRole('link', { name: 'Mi CineTrack' })).toBeVisible();
+    await expect(page.locator('#cinetrack-navbar').getByRole('link', { name: 'Mi CineTrack' })).toBeVisible();
 
     await page.getByRole('button', { name: /Cerrar Sesi/i }).click();
     await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByRole('link', { name: 'Mi CineTrack' })).toHaveCount(0);
+    await expect(page.locator('#cinetrack-navbar').getByRole('link', { name: 'Mi CineTrack' })).toHaveCount(0);
 
     expect(pageErrors).toEqual([]);
   });

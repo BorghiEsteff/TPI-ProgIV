@@ -14,10 +14,7 @@ const Footer = () => {
             Catálogo
           </Link>
           <Link to="/my-tracking" className="ct-footer-link">
-            Mi Diario
-          </Link>
-          <Link to="/recommendations" className="ct-footer-link">
-            Recomendaciones IA
+            Mi CineTrack
           </Link>
         </nav>
       </Container>

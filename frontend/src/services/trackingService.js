@@ -18,6 +18,14 @@ export const createTracking = async (payload) => {
   return response.data;
 };
 
+export const createTrackingWithMeta = async (payload) => {
+  const response = await djangoClient.post('/tracking/', payload);
+  return {
+    data: response.data,
+    created: response.status === 201,
+  };
+};
+
 export const updateTrackingSeconds = async (id, payload) => {
   const response = await djangoClient.patch(`/tracking/${id}/`, payload);
   return response.data;

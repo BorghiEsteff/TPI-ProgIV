@@ -143,7 +143,7 @@ Colección `personalnotes` (`backend-node/src/models/PersonalNote.js`):
 ## 4. Casos de Uso por Actor Actual
 
 * **Visitante (no autenticado):** explora el catálogo público (`is_active=True`), busca por título, filtra por tipo (`PELICULA`/`SERIE`) y género, y consulta fichas públicas (`/media/:id`). No posee rol persistido; cualquier acceso a diario, notas, propuestas, IA o moderación devuelve `401` o redirige a `/login`.
-* **Usuario (`USER`):** todo lo del visitante + gestiona su diario privado (`UserProgress`: estado, plataforma, temporada/episodio/segundos, favoritos, conciliación de duplicados), crea/edita/elimina sus notas privadas (`PersonalNote`), propone nuevas obras (`MediaSubmission`), edita sus propuestas pendientes y consulta el asistente IA (vista `/recommendations` y claqueta flotante).
+* **Usuario (`USER`):** todo lo del visitante + gestiona su diario privado unificado en `/my-tracking` (`UserProgress`: plataforma, estado, temporada/episodio/segundos, favoritos, conciliación de duplicados, propuestas pendientes y alta de obras), crea/edita/elimina sus notas privadas (`PersonalNote`) y consulta el asistente IA mediante la claqueta flotante (`FloatingRecommendationChat`).
 * **Administrador (`ADMIN`):** todo lo de `USER` + accede a `/admin/submissions`, aprueba y publica propuestas nuevas, fusiona propuestas duplicadas contra obras existentes preservando diarios privados (`reconciliations`/`reconcile`), rechaza propuestas con motivo y crea/edita obras y géneros en el catálogo oficial.
 
 ---

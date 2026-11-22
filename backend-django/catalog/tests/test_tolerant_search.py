@@ -279,3 +279,104 @@ class TestTolerantCatalogAndTrackingSearch:
         assert r.status_code == 200
         assert r.data["count"] >= 1
         assert elapsed < 1.5
+
+    def test_lote02_universal_substrings_separators_long_synopsis_and_short_symbols(self, db):
+        spider = MediaItem.objects.create(
+            title="Spider-Man: No Way Home",
+            media_type=MediaItem.MediaType.PELICULA,
+            release_year=2021,
+            country_of_origin="Estados Unidos",
+            producer="Sony Pictures",
+            synopsis="Multiverso arácnido.",
+            is_active=True,
+        )
+        mision = MediaItem.objects.create(
+            title="Misión: Imposible",
+            media_type=MediaItem.MediaType.PELICULA,
+            release_year=1996,
+            country_of_origin="Estados Unidos",
+            producer="Paramount+",
+            synopsis="Espionaje clásico.",
+            is_active=True,
+        )
+        otono = MediaItem.objects.create(
+            title="Otoño en España",
+            media_type=MediaItem.MediaType.PELICULA,
+            release_year=2023,
+            country_of_origin="España",
+            producer="Cine Iberia",
+            synopsis=("Relleno inicial. " * 25) + "PalabraClaveEnPosicionLarga.",
+            is_active=True,
+        )
+        up_film = MediaItem.objects.create(
+            title="Up",
+            media_type=MediaItem.MediaType.PELICULA,
+            release_year=2009,
+            country_of_origin="Estados Unidos",
+            producer="Pixar",
+            synopsis="Casa con globos.",
+            is_active=True,
+        )
+        superman = MediaItem.objects.create(
+            title="Superman",
+            media_type=MediaItem.MediaType.PELICULA,
+            release_year=1978,
+            country_of_origin="Estados Unidos",
+            producer="Warner",
+            synopsis="Héroe de Metrópolis.",
+            is_active=True,
+        )
+        inactive_disney = MediaItem.objects.create(
+            title="Secreto Disney Oculto",
+            media_type=MediaItem.MediaType.PELICULA,
+            release_year=2024,
+            producer="Disney+",
+            is_active=False,
+        )
+
+        client = APIClient()
+
+        # Separator & compact equivalence (no hardcoded brand rules)
+        for q in ("spiderman", "spider-man", "spider man", "no way"):
+            r = client.get("/api/v1/media/", {"search": q})
+            assert r.status_code == 200
+            assert spider.id in [x["id"] for x in r.data["results"]], f"Missing spider for {q}"
+
+        for q in ("mision-imposible", "mision imposible", "misionimposible", "misión: imposible"):
+            r = client.get("/api/v1/media/", {"search": q})
+            assert r.status_code == 200
+            assert mision.id in [x["id"] for x in r.data["results"]], f"Missing mision for {q}"
+
+        # Generic '+' handling without brand hardcoding
+        for q in ("paramount", "paramount+", "paramount plus"):
+            r = client.get("/api/v1/media/", {"search": q})
+            assert r.status_code == 200
+            assert mision.id in [x["id"] for x in r.data["results"]], f"Missing paramount for {q}"
+
+        # No 200-char truncation on synopsis
+        r_long = client.get("/api/v1/media/", {"search": "PalabraClaveEnPosicionLarga"})
+        assert r_long.status_code == 200
+        assert [x["id"] for x in r_long.data["results"]] == [otono.id]
+
+        # ñ preservation
+        r_ene = client.get("/api/v1/media/", {"search": "Otono en Espana"})
+        assert r_ene.status_code == 200
+        # "espana" has n vs ñ (ñ preserved distinct); "otono" fuzzy or country should handle or "Otoño" exact
+        r_ene_exact = client.get("/api/v1/media/", {"search": "Otoño"})
+        assert otono.id in [x["id"] for x in r_ene_exact.data["results"]]
+        r_es = client.get("/api/v1/media/", {"search": "España"})
+        assert otono.id in [x["id"] for x in r_es.data["results"]]
+
+        # Short symbol / short token safety: "Up" matches Up, not Superman; "C++" returns 0 cleanly
+        r_up = client.get("/api/v1/media/", {"search": "Up"})
+        up_ids = [x["id"] for x in r_up.data["results"]]
+        assert up_film.id in up_ids
+        assert superman.id not in up_ids
+
+        r_cpp = client.get("/api/v1/media/", {"search": "C++"})
+        assert r_cpp.status_code == 200
+        assert r_cpp.data["count"] == 0
+
+        # Inactive work never leaks
+        r_dis = client.get("/api/v1/media/", {"search": "disney"})
+        assert inactive_disney.id not in [x["id"] for x in r_dis.data["results"]]
