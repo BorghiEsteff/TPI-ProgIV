@@ -25,7 +25,8 @@
   - `season` y `episode` (solo en obras `SERIE`; ocultos en `PELICULA`)
   - `hours` (`>= 0`) y `minutes` (`0..59`) como posición de pausa del capítulo o película actual
   - Switch único de favorito y botones **Guardar progreso**, **Cancelar** y **Quitar del diario**.
-- **Invariantes de tiempo e historial**:
+- **Invariantes de tiempo, estado e historial**:
+  - `status = VISTO` significa **obra terminada** (no "capítulo visto"). Cambiar temporada, episodio, posición o plataforma mientras la obra ya está en `VISTO` nunca marca implícitamente el nuevo episodio en `episode_history`.
   - Si el usuario edita solo plataforma/estado/favorito sin modificar horas/minutos ni capítulo, el payload omite `current_seconds` para preservar los segundos exactos previos (ej. `01:24:35` = `5075s`).
   - Al cambiar de temporada o episodio en una serie, el editor prepara `00:00` visualmente sin autoguardar en `onBlur`; solo persiste al confirmar con **Guardar progreso**.
-  - En backend (`UserProgressSerializer`), editar una serie ya marcada como `VISTO` (por ejemplo cambiando plataforma) no duplica ni reescribe `episode_history`. Revertir de `VISTO` a `VIENDO`/`PENDIENTE` limpia `finished_at` sin borrar `episode_history`.
+  - En backend (`UserProgressSerializer`), revertir de `VISTO` a `VIENDO`, `PENDIENTE` o `ABANDONADO` limpia `finished_at` (`None`) sin borrar `episode_history` preexistente.

@@ -255,6 +255,12 @@ const MyTrackingPage = () => {
       setRecords((prev) =>
         prev.map((item) => (Number(item.id) === Number(id) ? updated : item))
       );
+      trackingService
+        .getTrackingSummary(debouncedSearch ? { search: debouncedSearch } : {})
+        .then((summary) => {
+          if (summary) setSummaryCounts(summary);
+        })
+        .catch(() => {});
       setFeedback({
         variant: 'success',
         text: 'Tu diario personal se actualizó correctamente.',
@@ -335,14 +341,16 @@ const MyTrackingPage = () => {
     setQuickAddingId(mediaItem.id);
     setFeedback(null);
     try {
-      await trackingService.createTracking({
+      const { created } = await trackingService.createTrackingWithMeta({
         media_item: mediaItem.id,
         status: 'PENDIENTE',
         watch_platform: quickAddPlatform.trim() || 'CineTrack',
       });
       setFeedback({
-        variant: 'success',
-        text: `"${mediaItem.title}" se agregó a tu diario personal.`,
+        variant: created ? 'success' : 'info',
+        text: created
+          ? `"${mediaItem.title}" se agregó a tu diario personal.`
+          : `"${mediaItem.title}" ya estaba en tu diario; se mantiene tu registro único.`,
       });
       setCatalogQuery('');
       setCatalogMatches([]);

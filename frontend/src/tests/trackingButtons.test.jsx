@@ -130,4 +130,37 @@ describe('TrackingProgressEditor unificado', () => {
     await user.click(screen.getByRole('button', { name: /Quitar del diario/i }));
     expect(onDeleteProgress).toHaveBeenCalledWith(baseSeriesProgress);
   });
+
+  it('MC-06 y MC-09: Cancelar revierte borrador sin guardar y rechaza valores inválidos (minutos >= 60, negativos o decimales)', async () => {
+    const user = userEvent.setup();
+    const onUpdateProgress = vi.fn().mockResolvedValue({});
+    const onCancel = vi.fn();
+
+    render(
+      <TrackingProgressEditor
+        progress={baseFilmProgress}
+        onUpdateProgress={onUpdateProgress}
+        onDeleteProgress={vi.fn()}
+        onCancel={onCancel}
+      />
+    );
+
+    const minutesInput = screen.getByLabelText(/Minutos/i);
+    await user.clear(minutesInput);
+    await user.type(minutesInput, '75');
+    await user.click(screen.getByRole('button', { name: /Guardar progreso/i }));
+    expect(screen.getByText(/Los minutos deben estar entre 0 y 59/i)).toBeInTheDocument();
+    expect(onUpdateProgress).not.toHaveBeenCalled();
+
+    await user.clear(minutesInput);
+    await user.type(minutesInput, '1.5');
+    await user.click(screen.getByRole('button', { name: /Guardar progreso/i }));
+    expect(screen.getByText(/Los minutos deben estar entre 0 y 59/i)).toBeInTheDocument();
+    expect(onUpdateProgress).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: /Cancelar/i }));
+    expect(onCancel).toHaveBeenCalled();
+    expect(onUpdateProgress).not.toHaveBeenCalled();
+    expect(screen.getByLabelText(/Minutos/i)).toHaveValue(24);
+  });
 });

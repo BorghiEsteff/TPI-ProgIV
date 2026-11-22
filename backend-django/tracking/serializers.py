@@ -131,10 +131,12 @@ class UserProgressSerializer(serializers.ModelSerializer):
         if status_value == UserProgress.WatchStatus.VIENDO:
             if not attrs.get("started_at") and (not instance or not instance.started_at):
                 attrs["started_at"] = timezone.now()
-            if instance and instance.status == UserProgress.WatchStatus.VISTO and "finished_at" not in attrs:
-                attrs["finished_at"] = None
 
-        if status_value == UserProgress.WatchStatus.PENDIENTE:
+        if status_value in (
+            UserProgress.WatchStatus.VIENDO,
+            UserProgress.WatchStatus.PENDIENTE,
+            UserProgress.WatchStatus.ABANDONADO,
+        ):
             if instance and instance.status == UserProgress.WatchStatus.VISTO and "finished_at" not in attrs:
                 attrs["finished_at"] = None
 
@@ -148,8 +150,6 @@ class UserProgressSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         prev_status = instance.status
-        prev_season = instance.current_season_number
-        prev_episode = instance.current_episode_number
         instance = super().update(instance, validated_data)
         media_type = (
             instance.media_item.media_type
@@ -160,14 +160,9 @@ class UserProgressSerializer(serializers.ModelSerializer):
             prev_status != UserProgress.WatchStatus.VISTO
             and instance.status == UserProgress.WatchStatus.VISTO
         )
-        episode_changed_while_visto = (
-            instance.status == UserProgress.WatchStatus.VISTO
-            and (
-                instance.current_season_number != prev_season
-                or instance.current_episode_number != prev_episode
-            )
-        )
-        if media_type == "SERIE" and (progressed_to_visto or episode_changed_while_visto):
+        # H-01: Cambiar temporada/episodio/posición/plataforma mientras ya está en VISTO
+        # nunca debe marcar implícitamente el nuevo episodio como visto.
+        if media_type == "SERIE" and progressed_to_visto:
             history = list(instance.episode_history or [])
             season = int(instance.current_season_number or 1)
             episode = int(instance.current_episode_number or 1)

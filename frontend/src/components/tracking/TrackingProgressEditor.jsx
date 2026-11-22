@@ -139,6 +139,7 @@ const TrackingProgressEditor = ({
 
   return (
     <Form
+      noValidate
       onSubmit={handleSubmit}
       className="mt-3 pt-3 border-top"
       data-testid={`tracking-editor-${progress.id}`}
