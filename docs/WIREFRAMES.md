@@ -23,24 +23,27 @@ Esquemas estructurales de baja fidelidad correspondientes a las vistas activas e
                                                        [Claqueta IA]
 ```
 
-* En `/media/:id` (autenticado): ficha completa + selector de estado (`PENDIENTE`, `VIENDO`, `VISTO`, `ABANDONADO`), plataforma, avance `HH:MM:SS` (`+30s`, `+5m`, `+15m`) y bloque de **Nota Privada + Rating 1..5** (MongoDB).
+* En `/media/:id` (autenticado): ficha completa + acceso directo para agregar a **Mi CineTrack** (`PENDIENTE` idempotente) o abrir el registro existente en `/my-tracking`, además de la consulta de disponibilidad y metadatos públicos.
 
 ---
 
-## 2. Diario Privado (`/my-tracking`) y Propuestas (`/new-entry`, `/my-submissions`)
+## 2. Mi CineTrack Unificado (`/my-tracking`, alias `/my-cinetrack`)
 
 ```text
 +-------------------------------------------------------------------+
-| Mi Diario Privado                                                 |
-| [Filtro estado] [Solo favoritos]                                  |
+| Mi CineTrack  [Mis obras]  [Mis propuestas]  [+ Agregar obra]     |
+| [TODOS | PENDIENTE | VIENDO | VISTO | ABANDONADO | FAVORITOS]     |
+| [Buscar en mi diario...]                                          |
 +-------------------------------------------------------------------+
-| Obra | Plataforma | Estado | Avance HH:MM:SS | Nota Privada | Ac |
-| ...  | Netflix    | VIENDO | 00:42:15         | 5/5 + texto  |    |
+| Tarjeta compacta: Portada | Título | Plataforma | T/E | Posición  |
+|   -> [Editar progreso] (TrackingProgressEditor único: plataforma, |
+|      estado, Temp./Ep. en series, horas+min, Guardar / Cancelar)  |
+|   -> [Valoración privada 1..5 estrellas + Comentario privado]     |
 +-------------------------------------------------------------------+
 ```
 
-* En `/new-entry`: formulario de título, tipo (`PELICULA` / `SERIE`), plataforma, año, país, 1–5 géneros y URL/archivo de portada validado (anti-SSRF/SVG).
-* En `/my-submissions`: listado del usuario con estados `PENDING` (editable), `PUBLISHED`, `MERGED` (con botón de conciliación de diario) o `REJECTED` (con motivo).
+* En `?view=add` (y redirección desde `/new-entry`): buscador rápido en el catálogo publicado para agregar sin duplicados, más el formulario `SubmissionForm` (título, tipo `PELICULA`/`SERIE`, plataforma, año, país, 1–5 géneros y URL/archivo de portada validado anti-SSRF/SVG).
+* En `?view=proposals` (y redirección desde `/my-submissions`): listado propio con estados `PENDING` (categorías editables), `PUBLISHED`, `MERGED` (con conciliación si aplica) o `REJECTED` (con motivo).
 
 ---
 
