@@ -51,7 +51,9 @@ const MediaCard = ({
 
         <div className="text-muted small mb-2">
           <span>{item.producer || 'Productora no especificada'}</span>
-          {item.release_date && <span> | {item.release_date}</span>}
+          {(item.release_year || item.release_date) && (
+            <span> | {item.release_year || String(item.release_date).slice(0, 4)}</span>
+          )}
         </div>
 
         <div className="d-flex flex-wrap gap-1 mb-2">
