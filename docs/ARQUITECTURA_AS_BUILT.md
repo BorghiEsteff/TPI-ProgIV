@@ -99,22 +99,22 @@ erDiagram
         int release_year
         bool is_active
         string country_of_origin
-        string poster_url
+        string poster_image
     }
     Genre {
         int id PK
         string name UK
-        string slug UK
     }
     UserProgress {
         int id PK
         int user_id FK
         int media_item_id FK
+        int source_submission_id FK
         string status
         bool is_favorite
         string watch_platform
-        int current_season
-        int current_episode
+        int current_season_number
+        int current_episode_number
         int current_seconds
         json episode_history
     }
@@ -123,19 +123,19 @@ erDiagram
         int submitted_by_id FK
         int resolved_media_id FK
         string title
-        string status "PENDING | APPROVED | MERGED | REJECTED"
+        string status "PENDING | PUBLISHED | MERGED | REJECTED"
         string rejection_reason
     }
 ```
 
 ### 3.2 Esquema Documental (`backend-node` / MongoDB 7)
 
-Colección `personalnotes` (`backend-node/src/models/PersonalNote.js`):
-* `userId` (`Number`, requerido, indexado): ID del usuario autenticado proveniente del claim `user_id` del JWT de Django.
-* `mediaId` (`Number`, requerido, indexado): ID de `MediaItem` en Django.
-* Índice compuesto único `{ userId: 1, mediaId: 1 }`: garantiza una nota privada por usuario y obra.
-* `rating` (`Number`, entero `1..5`, opcional).
-* `notes` (`String`, máximo 2000 caracteres).
+Colección `personal_notes` (`backend-node/src/models/PersonalNote.js`):
+* `ownerUserId` (`String`, requerido, indexado): ID del usuario autenticado proveniente del claim `user_id` del JWT de Django.
+* `trackingEntryId` (`Number`, requerido, indexado): ID de la entrada `UserProgress` en Django.
+* Índice compuesto único `{ ownerUserId: 1, trackingEntryId: 1 }`: garantiza una nota privada por usuario y entrada de seguimiento.
+* `rating` (`Number`, entero `1..5` o `null`).
+* `comment` (`String`, máximo 2000 caracteres).
 * `createdAt`, `updatedAt` (`Date`, timestamps automáticos).
 
 ---
