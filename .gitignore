@@ -69,4 +69,9 @@ htmlcov/
 # Office temporary files
 ~$*
 
+# Documentos locales excluidos del repositorio
+CineTrack_TPI_IEEE830.md
+MANUAL_USUARIO.md
+docs/CineTrack_IEEE830_SRS.docx
+
 

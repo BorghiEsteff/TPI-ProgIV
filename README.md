@@ -139,9 +139,6 @@ docker compose up --build
 
 ## Documentación académica y técnica
 
-* Especificación IEEE Std 830 (SRS completa en Markdown): [CineTrack_TPI_IEEE830.md](CineTrack_TPI_IEEE830.md)
-* Especificación IEEE Std 830 en Word (`.docx`): [docs/CineTrack_IEEE830_SRS.docx](docs/CineTrack_IEEE830_SRS.docx)
-* Manual de Usuario final: [MANUAL_USUARIO.md](MANUAL_USUARIO.md)
 * Arquitectura *as-built*, C4, DER, casos de uso y justificaciones: [docs/ARQUITECTURA_AS_BUILT.md](docs/ARQUITECTURA_AS_BUILT.md)
 * Matriz de cumplimiento TP0–TP5 y trazabilidad TDD: [docs/CUMPLIMIENTO_TP0_TP5.md](docs/CUMPLIMIENTO_TP0_TP5.md)
 * Contratos OpenAPI vigentes: [docs/tp-4-contenedores-despliegue/openapi-django.json](docs/tp-4-contenedores-despliegue/openapi-django.json) y [docs/tp-4-contenedores-despliegue/openapi.json](docs/tp-4-contenedores-despliegue/openapi.json)
