@@ -25,10 +25,14 @@ export const getGenres = async () => {
 };
 
 export const queryCatalogGraphQL = async (query, variables = {}) => {
-  const response = await djangoClient.post(DJANGO_GRAPHQL_URL, {
-    query,
-    variables,
-  });
+  const response = await djangoClient.post(
+    DJANGO_GRAPHQL_URL,
+    {
+      query,
+      variables,
+    },
+    DJANGO_GRAPHQL_URL.startsWith('/') ? { baseURL: '' } : undefined
+  );
   if (response.data?.errors?.length) {
     throw {
       status: 400,

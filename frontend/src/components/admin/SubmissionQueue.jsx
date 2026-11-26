@@ -15,6 +15,7 @@ const SubmissionQueue = ({
   busyId = null,
 }) => {
   const [rejectReasons, setRejectReasons] = useState({});
+  const [rejectErrors, setRejectErrors] = useState({});
   const [editTitles, setEditTitles] = useState({});
   const [editGenresById, setEditGenresById] = useState({});
   const [manualMergeIds, setManualMergeIds] = useState({});
@@ -186,24 +187,45 @@ const SubmissionQueue = ({
                         </Col>
                       </Row>
 
-                      <Row className="g-2 align-items-center">
+                      <Row className="g-2 align-items-start">
                         <Col md={8}>
                           <Form.Control
                             size="sm"
-                            placeholder="Motivo de rechazo (ej. portada ilegible, obra inexistente)"
+                            placeholder="Motivo de rechazo (obligatorio, ej. portada ilegible, obra inexistente)"
                             value={rejectReasons[sub.id] || ''}
-                            onChange={(e) =>
-                              setRejectReasons((prev) => ({ ...prev, [sub.id]: e.target.value }))
-                            }
+                            isInvalid={Boolean(rejectErrors[sub.id])}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setRejectReasons((prev) => ({ ...prev, [sub.id]: val }));
+                              if (val.trim() && rejectErrors[sub.id]) {
+                                setRejectErrors((prev) => ({ ...prev, [sub.id]: '' }));
+                              }
+                            }}
                             disabled={isBusy}
+                            data-testid={`reject-reason-${sub.id}`}
                           />
+                          <Form.Control.Feedback type="invalid">
+                            {rejectErrors[sub.id]}
+                          </Form.Control.Feedback>
                         </Col>
                         <Col md="auto">
                           <Button
                             size="sm"
                             variant="outline-danger"
-                            disabled={isBusy || !(rejectReasons[sub.id] || '').trim()}
-                            onClick={() => onReject(sub.id, rejectReasons[sub.id].trim())}
+                            disabled={isBusy}
+                            onClick={() => {
+                              const trimmed = (rejectReasons[sub.id] || '').trim();
+                              if (!trimmed) {
+                                setRejectErrors((prev) => ({
+                                  ...prev,
+                                  [sub.id]: 'Debes escribir un motivo breve para rechazar la propuesta.',
+                                }));
+                                return;
+                              }
+                              setRejectErrors((prev) => ({ ...prev, [sub.id]: '' }));
+                              onReject(sub.id, trimmed);
+                            }}
+                            data-testid={`reject-sub-${sub.id}`}
                           >
                             Rechazar propuesta
                           </Button>

@@ -84,7 +84,15 @@ test.describe('Mi CineTrack Unificado — Matriz Lote 03 (MC-01..MC-25)', () => 
 
     // Marcar VISTO (obra terminada) y recargar (MC-07)
     await serieCard.getByLabel(/Estado/i).selectOption('VISTO');
-    await serieCard.getByRole('button', { name: /Guardar progreso/i }).click();
+    await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.url().includes(`/api/v1/tracking/${serieEntry.id}/`) &&
+          res.request().method() === 'PATCH' &&
+          res.status() === 200
+      ),
+      serieCard.getByRole('button', { name: /Guardar progreso/i }).click(),
+    ]);
     await page.reload();
     const reloadedSerie = page.getByTestId(`tracking-card-${serieEntry.id}`);
     await expect(reloadedSerie).toContainText('T2 · E12');
@@ -98,7 +106,15 @@ test.describe('Mi CineTrack Unificado — Matriz Lote 03 (MC-01..MC-25)', () => 
     // MC-02: En serie ya VISTO, editar solo capítulo a T2E13 NO agrega T2E13 a episode_history
     await reloadedSerie.getByRole('button', { name: /Editar progreso/i }).click();
     await reloadedSerie.getByLabel(/Ep\./i).fill('13');
-    await reloadedSerie.getByRole('button', { name: /Guardar progreso/i }).click();
+    await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.url().includes(`/api/v1/tracking/${serieEntry.id}/`) &&
+          res.request().method() === 'PATCH' &&
+          res.status() === 200
+      ),
+      reloadedSerie.getByRole('button', { name: /Guardar progreso/i }).click(),
+    ]);
 
     const afterChRes = await request.get(`${DJANGO_API_URL}/tracking/${serieEntry.id}/`, {
       headers: authHeaders,
@@ -109,7 +125,15 @@ test.describe('Mi CineTrack Unificado — Matriz Lote 03 (MC-01..MC-25)', () => 
 
     // MC-03: En serie ya VISTO, editar solo plataforma preserva historial y segundos
     await reloadedSerie.getByLabel(/Plataforma/i).fill('Disney+');
-    await reloadedSerie.getByRole('button', { name: /Guardar progreso/i }).click();
+    await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.url().includes(`/api/v1/tracking/${serieEntry.id}/`) &&
+          res.request().method() === 'PATCH' &&
+          res.status() === 200
+      ),
+      reloadedSerie.getByRole('button', { name: /Guardar progreso/i }).click(),
+    ]);
     const afterPlatRes = await request.get(`${DJANGO_API_URL}/tracking/${serieEntry.id}/`, {
       headers: authHeaders,
     });
@@ -119,7 +143,15 @@ test.describe('Mi CineTrack Unificado — Matriz Lote 03 (MC-01..MC-25)', () => 
 
     // MC-10: Pasar de VISTO -> ABANDONADO limpia finished_at pero conserva historial
     await reloadedSerie.getByLabel(/Estado/i).selectOption('ABANDONADO');
-    await reloadedSerie.getByRole('button', { name: /Guardar progreso/i }).click();
+    await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.url().includes(`/api/v1/tracking/${serieEntry.id}/`) &&
+          res.request().method() === 'PATCH' &&
+          res.status() === 200
+      ),
+      reloadedSerie.getByRole('button', { name: /Guardar progreso/i }).click(),
+    ]);
     const afterAbandonRes = await request.get(`${DJANGO_API_URL}/tracking/${serieEntry.id}/`, {
       headers: authHeaders,
     });
@@ -146,7 +178,15 @@ test.describe('Mi CineTrack Unificado — Matriz Lote 03 (MC-01..MC-25)', () => 
 
     // MC-04: Editar solo favorito y guardar conserva 5075s exactos
     await filmCard.getByLabel(/Marcar como Favorito/i).check();
-    await filmCard.getByRole('button', { name: /Guardar progreso/i }).click();
+    await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.url().includes(`/api/v1/tracking/${filmEntry.id}/`) &&
+          res.request().method() === 'PATCH' &&
+          res.status() === 200
+      ),
+      filmCard.getByRole('button', { name: /Guardar progreso/i }).click(),
+    ]);
     const filmSecCheck = await request.get(`${DJANGO_API_URL}/tracking/${filmEntry.id}/`, {
       headers: authHeaders,
     });
@@ -160,7 +200,15 @@ test.describe('Mi CineTrack Unificado — Matriz Lote 03 (MC-01..MC-25)', () => 
     // MC-05: Editar horas=1, minutos=30 -> 5400s exactos
     await filmCard.getByLabel(/Horas/i).fill('1');
     await filmCard.getByLabel(/Minutos/i).fill('30');
-    await filmCard.getByRole('button', { name: /Guardar progreso/i }).click();
+    await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.url().includes(`/api/v1/tracking/${filmEntry.id}/`) &&
+          res.request().method() === 'PATCH' &&
+          res.status() === 200
+      ),
+      filmCard.getByRole('button', { name: /Guardar progreso/i }).click(),
+    ]);
     const filmUpdatedCheck = await request.get(`${DJANGO_API_URL}/tracking/${filmEntry.id}/`, {
       headers: authHeaders,
     });
