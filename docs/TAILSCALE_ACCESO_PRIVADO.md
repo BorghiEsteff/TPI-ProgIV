@@ -25,10 +25,10 @@ Dispositivo B (PC / Android) ──┘          │
 ```
 
 ### Rutas del proxy único
-* `/` y rutas SPA (`/login`, `/my-tracking`, `/media/:id`, etc.) -> Frontend (`:5173`)
+* `/` y rutas SPA (`/login`, `/my-tracking`, `/media/:id`, etc.) -> Frontend (`:5173`). Las fichas `/media/:id` recargan directamente en el SPA sin ser interceptadas por Django.
 * `/django/...` -> Backend Django (`:8000`, elimina prefijo `/django`)
 * `/node/...` -> Backend Node.js (`:5000`, elimina prefijo `/node`)
-* `/media/...` y `/static/...` -> Recursos estáticos y portadas de Django (`:8000`)
+* `/media/submission_posters/...`, archivos de imagen bajo `/media/` (`.png`, `.jpe?g`, `.webp`, `.gif`, `.svg`, `.ico`) y `/static/...` -> Recursos estáticos y portadas subidas en Django (`:8000`)
 * `service-ai` (`:8002`), PostgreSQL (`:5432`) y MongoDB (`:27017`) permanecen internos y no se publican hacia clientes.
 
 ---

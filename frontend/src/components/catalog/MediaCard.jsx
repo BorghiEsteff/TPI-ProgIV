@@ -18,24 +18,26 @@ const MediaCard = ({
 
   return (
     <Card className="h-100 ct-media-card">
-      {showPoster ? (
-        <div className="ct-poster-frame">
-          <Card.Img
-            variant="top"
-            src={item.poster_image}
-            alt={`Poster de ${item.title}`}
-            className="ct-poster-img"
-            onError={() => setImgError(true)}
-          />
-        </div>
-      ) : (
-        <div className="ct-poster-fallback">
-          <span className="small text-uppercase fw-semibold letter-spacing-1">
-            {isSerie ? 'Serie' : 'Película'}
-          </span>
-          <span className="small mt-1 opacity-75">{item.title}</span>
-        </div>
-      )}
+      <Link to={`/media/${item.id}`} className="d-block text-decoration-none text-reset">
+        {showPoster ? (
+          <div className="ct-poster-frame">
+            <Card.Img
+              variant="top"
+              src={item.poster_image}
+              alt={`Poster de ${item.title}`}
+              className="ct-poster-img"
+              onError={() => setImgError(true)}
+            />
+          </div>
+        ) : (
+          <div className="ct-poster-fallback">
+            <span className="small text-uppercase fw-semibold letter-spacing-1">
+              {isSerie ? 'Serie' : 'Película'}
+            </span>
+            <span className="small mt-1 opacity-75">{item.title}</span>
+          </div>
+        )}
+      </Link>
 
       <Card.Body className="d-flex flex-column">
         <div className="d-flex justify-content-between align-items-start gap-2 mb-2">

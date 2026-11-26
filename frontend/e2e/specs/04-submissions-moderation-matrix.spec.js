@@ -116,7 +116,12 @@ test.describe('Propuestas, duplicados, moderación y caso Matrix (E2E-16..E2E-26
     await pageC.getByPlaceholder(/Titulo, productora o sinopsis/i).fill('Matrix');
     await pageC.getByRole('button', { name: 'Buscar' }).click();
     await pageC.locator('.card', { hasText: 'Matrix' }).first().getByRole('button', { name: 'Ver ficha' }).click();
-    await pageC.getByRole('button', { name: /Agregar a Mi CineTrack/i }).click();
+    await Promise.all([
+      pageC.waitForResponse(
+        (res) => res.url().includes('/api/v1/tracking/') && res.request().method() === 'POST' && res.status() === 201
+      ),
+      pageC.getByRole('button', { name: /Agregar a Mi CineTrack/i }).click(),
+    ]);
     await pageC.goto('/my-tracking');
     const cardC = pageC.locator('.card', { hasText: 'Matrix' }).first();
     await expect(cardC).toContainText('Sin definir');

@@ -70,10 +70,14 @@ export const getFederatedMediaDetails = async (mediaItemId) => {
     }
   `;
 
-  const response = await nodeClient.post(NODE_GRAPHQL_URL, {
-    query,
-    variables: { mediaItemId: Number(mediaItemId) },
-  });
+  const response = await nodeClient.post(
+    NODE_GRAPHQL_URL,
+    {
+      query,
+      variables: { mediaItemId: Number(mediaItemId) },
+    },
+    NODE_GRAPHQL_URL.startsWith('/') ? { baseURL: '' } : undefined
+  );
 
   if (response.data?.errors?.length) {
     throw {

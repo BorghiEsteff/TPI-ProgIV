@@ -8,6 +8,7 @@ cd backend-django
 if (Test-Path db.qa.sqlite3) { Remove-Item db.qa.sqlite3 -Force }
 $env:DB_ENGINE="django.db.backends.sqlite3"
 $env:SQLITE_DB_NAME="db.qa.sqlite3"
+$env:PYTHONIOENCODING="utf-8"
 .\venv\Scripts\python.exe manage.py migrate --noinput
 .\venv\Scripts\python.exe seed_qa.py
 

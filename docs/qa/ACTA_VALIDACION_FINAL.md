@@ -35,3 +35,28 @@ En la corrida conjunta sin reinicializar la base entre proyectos, 3 casos de `ch
 
 ### 2.3 Pendientes externos fuera de código
 1. **Protección de rama `main` en GitHub:** requiere configuración directa en GitHub (`Settings > Branches`) con credenciales de propietario del repositorio.
+
+---
+
+## 3. Cierre definitivo pre-defensa (26/11/2026 — Lote 02 / Lote 04)
+
+**Entorno QA aislado:** Django SQLite QA (`SQLITE_DB_NAME=db.qa.sqlite3`, `seed_qa.py` con portadas locales en `frontend/public/qa-posters/`), MongoDB QA (`cinetrack_qa`), FastAPI (`:8102`), Node (`:5100`), Vite (`:5174`), Proxy (`proxy/local-proxy.mjs` en `:8188`).  
+**Rama de cierre:** `fix/defense-final-qa-20261126` (base `main`).
+
+| Suite / Verificación | Comando ejecutado | Resultado exacto | Estado |
+| :--- | :--- | :--- | :--- |
+| **Backend Django (`pytest`)** | `DB_ENGINE=django.db.backends.sqlite3 SQLITE_DB_NAME=db.test_runner.sqlite3 .\venv\Scripts\python.exe -m pytest --tb=short` | **41 passed** (0 fallos, 0 omitidos) | PASS |
+| **Microservicio IA (`service-ai`)** | `.\venv\Scripts\python.exe -m pytest --tb=short` | **9 passed** (0 fallos, 0 omitidos) | PASS |
+| **Backend Node.js (`jest`)** | `npm test` | **6 suites, 25 passed** (0 fallos) | PASS |
+| **Frontend Lint (`oxlint`)** | `npm run lint` | **0 errores** (16 advertencias preexistentes) | PASS |
+| **Frontend Unitario (`vitest`)** | `npx vitest run` | **8 archivos, 29 passed** | PASS |
+| **Frontend Build (`vite build`)** | `npm run build` | `434 modules transformed` (`dist/`) | PASS |
+| **Playwright Desktop (`chromium-desktop`)** | `npx playwright test --project=chromium-desktop` | **27 passed** (0 fallos, 0 omitidos) | PASS |
+| **Playwright Mobile (`chromium-mobile`)** | Reinicio `db.qa.sqlite3` + `cinetrack_qa` → `npx playwright test --project=chromium-mobile` | **27 passed** (0 fallos, 0 omitidos) | PASS |
+| **Total consolidadas** | Todas las suites | **158/158 pruebas aprobadas** | **PASS** |
+
+### Correcciones integradas en este cierre
+1. **Rutas SPA `/media/:id` en proxy:** `proxy/local-proxy.mjs` y `proxy/nginx.conf` restringen el enrutamiento `/media/` a `/media/submission_posters/` y extensiones de imagen (`.png`, `.jpe?g`, `.webp`, `.gif`, `.svg`, `.ico`), permitiendo abrir y recargar directamente `/media/:id` en el frontend sin `404` de Django.
+2. **Consultas GraphQL relativas bajo proxy:** `frontend/src/services/catalogService.js` (`queryCatalogGraphQL`) y `frontend/src/services/reviewService.js` (`getFederatedMediaDetails`) pasan `{ baseURL: '' }` cuando la URL GraphQL comienza con `/`, evitando prefijos duplicados `/api/v1`.
+3. **Portadas navegables ante fallo de imagen externa:** `frontend/src/components/catalog/MediaCard.jsx` envuelve tanto `.ct-poster-frame` como `.ct-poster-fallback` en `<Link to="/media/${item.id}">`.
+4. **Sincronización y fixtures locales E2E:** `frontend/e2e/specs/04-submissions-moderation-matrix.spec.js` y `12-unified-my-cinetrack.spec.js` esperan las respuestas reales `POST`/`PATCH` antes de navegar o consultar la API, y `backend-django/seed_qa.py` referencia portadas PNG locales en `frontend/public/qa-posters/`.
