@@ -16,7 +16,7 @@
 2. **Diario personal privado (`Mi CineTrack`):** Seguimiento granular de estado (`PENDIENTE`, `VIENDO`, `VISTO`), plataforma, favoritos, progreso exacto (`current_seconds`) y notas privadas (`PersonalNote` en MongoDB con calificación `1..5`).
 3. **Curaduría comunitaria e Inteligencia Artificial segura:** Sistema de propuestas (`MediaSubmission`) con detección automática de duplicados, moderación administrativa transaccional y un asistente conversacional flotante (`FloatingRecommendationChat`) que recomienda exclusivamente obras publicadas en el catálogo.
 
-El proyecto cumple íntegramente los hitos **TP0 a TP5**, cuenta con **7 servicios orquestados en `docker-compose.yml`**, contratos **OpenAPI 3.0** y **GraphQL**, y una cobertura de pruebas automatizadas verificada en verde (**29 tests Django** en SQLite y PostgreSQL 16, **25 tests Node.js**, **9 tests FastAPI IA**, **24 tests Vitest** y **22/22 specs Playwright E2E** tanto en desktop como en móvil).
+El proyecto cumple íntegramente los hitos **TP0 a TP5**, cuenta con **7 servicios orquestados en `docker-compose.yml`**, contratos **OpenAPI 3.0** y **GraphQL**, y una cobertura de pruebas automatizadas consolidada en el cierre pre-defensa del **26/11/2026** con **158/158 pruebas en verde** (**41 tests Django**, **9 tests FastAPI IA**, **25 tests Node.js**, **29 tests Vitest**, **27/27 Playwright Desktop** y **27/27 Playwright Mobile**, más `oxlint` con `0` errores y `vite build` exitoso).
 
 ---
 
@@ -256,16 +256,16 @@ flowchart TD
 
 ## 7. Resumen de QA, Benchmarks y Reproducibilidad
 
-### 7.1 Resultados de Pruebas Automatizadas (Acta 19/11/2026)
+### 7.1 Resultados de Pruebas Automatizadas (Base 19/11/2026 y Cierre Final 26/11/2026)
 
-| Suite | Comando | Resultado Real |
-| :--- | :--- | :--- |
-| **Backend Django (SQLite & PG16)** | `pytest -v` | **29 passed** en ambos motores (0 fallos) |
-| **Microservicio IA (`service-ai`)** | `pytest -v` | **9 passed** + prueba live Groq (`degraded: false`) |
-| **Backend Node.js (`backend-node`)** | `npm test` | **6 suites, 25 passed** (Jest + Supertest) |
-| **Frontend Unit + Build** | `npm test` & `npm run build` | **7 archivos, 24 passed**; build Vite `438` módulos |
-| **Playwright E2E** | `npm run test:e2e` | **22/22 desktop** + **22/22 mobile** (aislando BD QA) |
-| **Benchmark SQL** | `manage.py benchmark_queries` | SQLite QA: `13.59 ms` / `2.19 ms`; PG16: `Index Scan` (0 N+1) |
+| Suite | Comando | Base Histórica (19/11/2026) | Cierre Final (26/11/2026 — **158/158**) |
+| :--- | :--- | :--- | :--- |
+| **Backend Django** | `pytest -v` | **29 passed** (SQLite & PG16) | **41 passed** (`0` fallos) |
+| **Microservicio IA (`service-ai`)** | `pytest -v` | **9 passed** + live Groq | **9 passed** (`0` fallos) |
+| **Backend Node.js (`backend-node`)** | `npm test` | **6 suites, 25 passed** | **6 suites, 25 passed** (`0` fallos) |
+| **Frontend Unit + Lint + Build** | `npm run lint`, `npx vitest run`, `npm run build` | **7 archivos, 24 passed**; `438` módulos | **8 archivos, 29 passed**; `oxlint` 0 errores; Vite `434` módulos |
+| **Playwright E2E** | `npx playwright test --project=chromium-desktop` y `--project=chromium-mobile` | **22/22 desktop** + **22/22 mobile** | **27/27 desktop** + **27/27 mobile** (aislando `db.qa.sqlite3` y `cinetrack_qa`) |
+| **Benchmark SQL** | `manage.py benchmark_queries` | SQLite QA: `13.59 ms` / `2.19 ms`; PG16: `Index Scan` | Conservado (`Index Scan`, 0 N+1) |
 
 ### 7.2 Puesta en Marcha Rápida con Docker Compose
 

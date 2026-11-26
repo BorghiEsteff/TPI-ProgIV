@@ -5,8 +5,8 @@ Este índice clasifica las evidencias del repositorio en **validación vigente**
 ---
 
 ## 1. Validación vigente (estado actual en `main`)
-* **[ACTA_VALIDACION_FINAL.md](ACTA_VALIDACION_FINAL.md):** acta consolidada del cierre 19–20/11/2026 (Django 29/29 en SQLite y PG16, FastAPI 9/9 + live Groq, Node 25/25, Vitest 24/24, Build OK, Docker Compose 6 servicios, Playwright 22/22 desktop y 6/6 reejecutado en mobile sobre BD limpia).
-* **[QA_COMMANDS.md](QA_COMMANDS.md)** y **[QA_REPRODUCCION_FINAL.md](QA_REPRODUCCION_FINAL.md):** instructivos vigentes para levantar `db.qa.sqlite3` (`python seed_qa.py`) y `cinetrack_qa`.
+* **[ACTA_VALIDACION_FINAL.md](ACTA_VALIDACION_FINAL.md):** acta consolidada incluyendo el cierre pre-defensa **26/11/2026 (`158/158`)**: Django **41/41**, FastAPI **9/9**, Node.js **25/25**, Vitest **29/29** (`oxlint` 0 errores + `vite build` OK), Playwright **27/27 desktop** + **27/27 mobile** sobre `db.qa.sqlite3` y `cinetrack_qa` aisladas (conservando el registro histórico base del 19–20/11/2026).
+* **[QA_COMMANDS.md](QA_COMMANDS.md)** y **[QA_REPRODUCCION_FINAL.md](QA_REPRODUCCION_FINAL.md):** instructivos vigentes para levantar `db.qa.sqlite3` (`python seed_qa.py` en UTF-8), `cinetrack_qa` y el proxy único `proxy/local-proxy.mjs` (`:8088` / `:8188`).
 
 ## 2. Pruebas condicionadas al entorno
 * **PostgreSQL 18 local en Windows:** bloqueado por discrepancia de contraseña local para `cinetrack_user`; validado en su lugar contra `postgres:16-alpine` en Docker (`ACTA_VALIDACION_FINAL.md`).

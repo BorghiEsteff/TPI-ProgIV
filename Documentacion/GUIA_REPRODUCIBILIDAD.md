@@ -154,11 +154,12 @@ Carga géneros base, catálogo inicial y 3 usuarios de demostración:
 Además existe el fixture `backend-django/catalog/fixtures/initial_data.json` cargable mediante `manage.py loaddata initial_data`.
 
 ### 5.2 Semilla aislada para QA y E2E (`seed_qa.py`)
-Requiere `SQLITE_DB_NAME=db.qa.sqlite3` para proteger la base de desarrollo:
+Requiere `SQLITE_DB_NAME=db.qa.sqlite3` para proteger la base de desarrollo y utiliza portadas locales válidas en `frontend/public/qa-posters/*.png` (ejecutar directamente con Python en UTF-8 para evitar duplicados de géneros acentuados en tuberías CP1252):
 ```powershell
 cd backend-django
 $env:DB_ENGINE="django.db.backends.sqlite3"
 $env:SQLITE_DB_NAME="db.qa.sqlite3"
+$env:PYTHONIOENCODING="utf-8"
 .\venv\Scripts\python.exe manage.py migrate
 .\venv\Scripts\python.exe seed_qa.py
 ```
@@ -175,11 +176,13 @@ Cuentas QA creadas por `seed_qa.py`:
 
 ## 6. Ejecución de Suites de Pruebas Automatizadas
 
-| Servicio | Comando | Alcance Verificado (Acta 19/11/2026) |
-| :--- | :--- | :--- |
-| **Django (`backend-django/`)** | `.\venv\Scripts\python.exe -m pytest -v` | 29 passed (SQLite y PostgreSQL 16) |
-| **Service AI (`service-ai/`)** | `.\venv\Scripts\python.exe -m pytest -v` | 9 passed (fallback, anti-alucinación, prompt injection) |
-| **Node.js (`backend-node/`)** | `npm test` | 6 suites, 25 passed (`auth`, `personalNote`, `recommendations`, `review`, `graphql`, `realtime`) |
-| **Frontend Unit (`frontend/`)** | `npm test` y `npm run build` | 7 archivos, 24 passed; build Vite 438 módulos |
-| **Playwright E2E (`frontend/`)** | `npm run test:e2e -- --project=chromium-desktop` y `--project=chromium-mobile` | 22/22 desktop + 22/22 mobile (aislando `db.qa.sqlite3` y `cinetrack_qa` entre corridas) |
-| **Benchmark SQL (`backend-django/`)** | `.\venv\Scripts\python.exe manage.py benchmark_queries` | Validación de índices y prevención N+1 |
+Para validar el entorno unificado bajo proxy local (`node proxy/local-proxy.mjs`, puerto `8088` o `PROXY_PORT=8188` en QA; conserva `/media/:id` en el SPA de Vite y deriva solo `/media/submission_posters/` y archivos de imagen a Django):
+
+| Servicio | Comando | Alcance Histórico (19/11/2026) | Cierre Definitivo (26/11/2026 — **158/158**) |
+| :--- | :--- | :--- | :--- |
+| **Django (`backend-django/`)** | `.\venv\Scripts\python.exe -m pytest -v` | 29 passed | **41 passed** (`0` fallos) |
+| **Service AI (`service-ai/`)** | `.\venv\Scripts\python.exe -m pytest -v` | 9 passed | **9 passed** (`0` fallos) |
+| **Node.js (`backend-node/`)** | `npm test` | 6 suites, 25 passed | **6 suites, 25 passed** (`0` fallos) |
+| **Frontend Unit (`frontend/`)** | `npm run lint`, `npx vitest run`, `npm run build` | 7 archivos, 24 passed | **8 archivos, 29 passed**, `oxlint` 0 errores, build Vite OK |
+| **Playwright E2E (`frontend/`)** | `npx playwright test --project=chromium-desktop` y `--project=chromium-mobile` | 22/22 desktop + 22/22 mobile | **27/27 desktop + 27/27 mobile** (aislando `db.qa.sqlite3` y `cinetrack_qa` entre corridas) |
+| **Benchmark SQL (`backend-django/`)** | `.\venv\Scripts\python.exe manage.py benchmark_queries` | Validación de índices y prevención N+1 | Conservado (`Index Scan`, 0 N+1) |

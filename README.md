@@ -111,7 +111,7 @@ Abrir en el navegador: `http://localhost:5173`.
 > **Notas importantes de puesta en marcha desde un clon limpio:**
 > * **Datos iniciales:** `manage.py seed_data` carga un catálogo y usuarios de demostración iniciales (las bases locales con datos personales no se suben al repositorio).
 > * **SQLite local vs. PostgreSQL:** si no tenés PostgreSQL instalado localmente, definí `DB_ENGINE=django.db.backends.sqlite3` en `backend-django/.env` antes de correr `migrate` y `seed_data`.
-> * **Modo directo vs. proxy/Tailscale:** `frontend/.env.example` apunta por defecto a `http://localhost:8000` y `http://localhost:5000` para funcionar directo en `http://localhost:5173`. Si querés usar el proxy unificado o Tailscale Serve, activá las rutas `/django/...` y `/node/...` en `frontend/.env`, ejecutá `node proxy/local-proxy.mjs` y abrí `http://localhost:8088`.
+> * **Modo directo vs. proxy/Tailscale:** `frontend/.env.example` apunta por defecto a `http://localhost:8000` y `http://localhost:5000` para funcionar directo en `http://localhost:5173`. Si querés usar el proxy unificado o Tailscale Serve, activá las rutas `/django/...` y `/node/...` en `frontend/.env`, ejecutá `node proxy/local-proxy.mjs` y abrí `http://localhost:8088` (el proxy deriva `/media/submission_posters/` y archivos de imagen a Django y conserva `/media/:id` en el SPA para recarga directa de fichas).
 
 ---
 
@@ -129,10 +129,12 @@ docker compose up --build
 
 ## Pruebas automatizadas y QA
 
-* **Django (`backend-django/`):** `pytest -v`
+Cierre consolidado **26/11/2026: 158/158 pruebas aprobadas** (`41` Django, `9` FastAPI IA, `25` Node.js, `29` Vitest, `27` Playwright Desktop y `27` Playwright Mobile + `oxlint` 0 errores y `vite build` exitoso):
+
+* **Django (`backend-django/`):** `pytest -v` (en QA usar `DB_ENGINE=django.db.backends.sqlite3` y `SQLITE_DB_NAME=db.qa.sqlite3`)
 * **FastAPI IA (`service-ai/`):** `pytest -v`
 * **Node.js (`backend-node/`):** `npm test`
-* **Frontend unitario (`frontend/`):** `npm test` y `npm run build`
+* **Frontend unitario (`frontend/`):** `npm run lint`, `npm test` y `npm run build`
 * **Playwright E2E (`frontend/`):** ver guía de entorno QA aislado en [docs/qa/QA_COMMANDS.md](docs/qa/QA_COMMANDS.md) y el acta vigente en [docs/qa/ACTA_VALIDACION_FINAL.md](docs/qa/ACTA_VALIDACION_FINAL.md).
 
 ---
