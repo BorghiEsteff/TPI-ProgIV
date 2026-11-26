@@ -23,7 +23,7 @@ const resolveRoute = (urlPath = '/') => {
   if (urlPath === '/node') {
     return { target: TARGETS.node, path: '/' };
   }
-  if (urlPath.startsWith('/media/') || urlPath.startsWith('/static/')) {
+  if (urlPath.startsWith('/static/') || /^\/media\/(submission_posters\/|.*\.(png|jpe?g|webp|gif|svg|ico)(\?.*)?$)/i.test(urlPath)) {
     return { target: TARGETS.django, path: urlPath };
   }
   return { target: TARGETS.frontend, path: urlPath };
