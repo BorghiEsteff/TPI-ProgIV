@@ -10,9 +10,13 @@ const PORT = process.env.PORT || 5000;
 // Crear servidor HTTP compatible con Express y Socket.IO
 const server = http.createServer(app);
 
+const allowedSocketOrigins = process.env.CLIENT_ORIGIN
+  ? process.env.CLIENT_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
+  : ['http://localhost:5173', 'http://127.0.0.1:5173'];
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_ORIGIN || '*',
+    origin: allowedSocketOrigins,
     methods: ['GET', 'POST'],
   },
 });
